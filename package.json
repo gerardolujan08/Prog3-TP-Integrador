@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "des": "node --wacth index.js"
+    "des": "node --watch src/reservas.js"
   },
   "author": "Gerardo Lujan",
   "license": "ISC",
