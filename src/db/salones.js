@@ -8,9 +8,9 @@ export default class Salones {
         return salones;
     }
 
-    buscarPorId = async(id) => {
+    buscarPorId = async(salon_id) => {
         const sql = 'SELECT * FROM salones WHERE activo = 1 AND salon_id = ?';
-        const [salon] = await conexion.execute(sql, [id]);
+        const [salon] = await conexion.execute(sql, [salon_id]);
         return salon[0];
     }
 
@@ -18,18 +18,20 @@ export default class Salones {
         const { titulo, direccion, capacidad, importe } = salon;
         const sql = 'INSERT INTO salones (titulo, direccion, capacidad, importe) VALUES (?, ?, ?, ?)';
         const [resultado] = await conexion.execute(sql, [titulo, direccion, capacidad, importe]);
-        return resultado;
+        return this.buscarPorId(resultado.insertId);
     }
 
-    actualizar = async(id, salon) => {
+    actualizar = async(salon_id, salon) => {
         const { titulo, direccion, capacidad, importe } = salon;
         const sql = 'UPDATE salones SET titulo = ?, direccion = ?, capacidad = ?, importe = ? WHERE salon_id = ?';
-        await conexion.execute(sql, [titulo, direccion, capacidad, importe, id]);
+        await conexion.execute(sql, [titulo, direccion, capacidad, importe, salon_id]);
+        return this.buscarPorId(salon_id);
     }
 
-    eliminar = async(id) => {
+    eliminar = async(salon_id) => {
         const sql = 'UPDATE salones SET activo = 0 WHERE salon_id = ?';
-        await conexion.execute(sql, [id]);
+        await conexion.execute(sql, [salon_id]);
+        return this.buscarPorId(salon_id);
     }
     
 }

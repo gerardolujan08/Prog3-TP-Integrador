@@ -19,7 +19,7 @@ export default class SalonesControlador{
 
             res.json({
                 estado: true, 
-                datos: salones
+                salones: salones
             });
     
         } catch (err) {
@@ -45,7 +45,7 @@ export default class SalonesControlador{
 
             res.json({
                 estado: true,
-                datos: salon
+                salon: salon
             });
         } catch (err) {
             console.log('Error en GET /salones/:salon_id', err);
@@ -71,7 +71,7 @@ export default class SalonesControlador{
             res.status(201).json({
                 estado: true,
                 mensaje: 'Salón creado exitosamente.',
-                salon_id: salonId
+                salon: salonId
             });
 
         } catch (err) {
@@ -103,7 +103,8 @@ export default class SalonesControlador{
             }
             res.status(200).json({
                 estado: true,
-                mensaje: 'Salón actualizado exitosamente.'
+                mensaje: 'Salón actualizado exitosamente.',
+                salon: salonActualizado
             });
 
         } catch (err) {

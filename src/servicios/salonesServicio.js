@@ -15,26 +15,26 @@ export default class SalonesServicio {
         return this.salones.buscarPorId(salon_id);
     }
 
-    crear = async (salon) => {
-        const resultado = await this.salones.crear(salon);
-        return resultado.insertId;
+    crear = (salon) => {
+        return this.salones.crear(salon);
     }
 
     actualizar = async (salon_id, salon) => {
-        const salonExistente = await this.salones.buscarPorId(salon_id);
-        if(!salonExistente){
+        const salonExiste = await this.salones.buscarPorId(salon_id);
+        if(!salonExiste){
             return false;
         }
-        await this.salones.actualizar(salon_id, salon);
+        await this.salones.actualizar(salon_id, salon)
         return true;
     }
 
+
     eliminar = async (salon_id) => {
-        const salonExistente = await this.salones.buscarPorId(salon_id);
-        if(!salonExistente){
+        const salonExiste = await this.salones.buscarPorId(salon_id);
+        if(!salonExiste){
             return false;
         }
-        await this.salones.eliminar(salon_id);
+        await this.salones.eliminar(salon_id)
         return true;
     }
 }
