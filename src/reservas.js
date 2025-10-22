@@ -8,8 +8,4 @@ app.use(express.json());
 
 app.use('/api/v1/salones', v1SalonesRutas);
 
-process.loadEnvFile();
-
-app.listen(process.env.PUERTO, () => {
-    console.log(`Servidor iniciado en ${process.env.PUERTO}`);
-})
+export default app;
