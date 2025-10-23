@@ -59,19 +59,26 @@ export default class SalonesControlador{
     crear = async (req, res) => {
         try {
             const { titulo, direccion, capacidad, importe } = req.body;
-            if(!titulo || !direccion || !capacidad || !importe){
-                return res.status(400).json({
+
+            const salon = {
+                titulo,
+                direccion,
+                capacidad,
+                importe
+            }
+            const nuevoSalon = await this.salonesServicio.crear(salon);
+
+            if (!nuevoSalon) {
+                return res.status(404).json({
                     estado: false,
-                    mensaje: 'Faltan datos requeridos.'
+                    mensaje: 'No se pudo crear el salón.'
                 });
             }
-            const nuevoSalon = { titulo, direccion, capacidad, importe };
-            const salonId = await this.salonesServicio.crear(nuevoSalon);
 
             res.status(201).json({
                 estado: true,
                 mensaje: 'Salón creado exitosamente.',
-                salon: salonId
+                salon: nuevoSalon
             });
 
         } catch (err) {
@@ -86,16 +93,10 @@ export default class SalonesControlador{
     actualizar = async (req, res) => {
         try {
             const salon_id = req.params.salon_id;
-            const { titulo, direccion, capacidad, importe } = req.body;
-            if(!titulo || !direccion || !capacidad || !importe){
-                return res.status(400).json({
-                    estado: false,
-                    mensaje: 'Faltan datos requeridos.'
-                });
-            }
-            const salonActualizado = { titulo, direccion, capacidad, importe };
-            const actualizado = await this.salonesServicio.actualizar(salon_id, salonActualizado);
-            if(!actualizado){
+            const datos = req.body;
+            const salonActualizado = await this.salonesServicio.actualizar(salon_id, datos);
+            
+            if(!salonActualizado){
                 return res.status(404).json({
                     estado: false,
                     mensaje: 'Salón no encontrado.'
