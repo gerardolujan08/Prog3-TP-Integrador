@@ -11,6 +11,11 @@ export default class Salones {
     buscarPorId = async(salon_id) => {
         const sql = 'SELECT * FROM salones WHERE activo = 1 AND salon_id = ?';
         const [salon] = await conexion.execute(sql, [salon_id]);
+
+        if (salon.length === 0) {
+            return null;
+        }
+
         return salon[0];
     }
 
@@ -18,13 +23,30 @@ export default class Salones {
         const { titulo, direccion, capacidad, importe } = salon;
         const sql = 'INSERT INTO salones (titulo, direccion, capacidad, importe) VALUES (?, ?, ?, ?)';
         const [resultado] = await conexion.execute(sql, [titulo, direccion, capacidad, importe]);
+
+        if (resultado.affectedRows === 0) {
+            return null;
+        }
+
         return this.buscarPorId(resultado.insertId);
     }
 
-    actualizar = async(salon_id, salon) => {
-        const { titulo, direccion, capacidad, importe } = salon;
-        const sql = 'UPDATE salones SET titulo = ?, direccion = ?, capacidad = ?, importe = ? WHERE salon_id = ?';
-        await conexion.execute(sql, [titulo, direccion, capacidad, importe, salon_id]);
+    actualizar = async(salon_id, datos) => {
+        const camposAActualizar = Object.keys(datos);
+        const valoresAActualizar = Object.values(datos);
+
+        const setValores = camposAActualizar.map(campo => `${campo} = ?`).join(', ');
+
+        const parametros = [...valoresAActualizar, salon_id];
+
+        const sql = `UPDATE salones SET ${setValores} WHERE salon_id = ?`;
+        
+        const [resultado] = await conexion.execute(sql, parametros);
+
+        if (resultado.affectedRows === 0) {
+            return null;
+        }
+
         return this.buscarPorId(salon_id);
     }
 
