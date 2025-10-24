@@ -2,8 +2,13 @@ import { conexion } from "./conexion.js";
 
 export default class Usuarios {
 
-    buscarTodos = async() => {
-        const sql = 'SELECT * FROM usuarios WHERE activo = 1';
+    buscarTodos = async(user) => {
+        let sql;
+        if(user.tipo_usuario == 1) {
+            sql = 'SELECT * FROM usuarios WHERE activo = 1';
+        } else if(user.tipo_usuario == 2) {
+            sql = 'SELECT * FROM usuarios WHERE activo = 1 AND tipo_usuario = 3';
+        }
         const [usuarios] = await conexion.execute(sql);
         return usuarios;
     }
@@ -14,14 +19,23 @@ export default class Usuarios {
         return usuario[0];
     }
 
+    buscarPorUsuario = async(nombre_usuario, contrasenia) => {
+        const sql = `SELECT u.usuario_id, CONCAT(u.nombre,' ', u.apellido) as usuario, u.tipo_usuario
+                     FROM usuarios AS u
+                     WHERE u.nombre_usuario = ?
+                        AND u.contrasenia = sha2(?, 256)
+                        AND u.activo = 1;`
+        const [result] = await conexion.query(sql, [nombre_usuario, contrasenia]);
+        return result[0]
+    }
+
     crear = async(usuario) => {
         const { nombre, apellido, nombre_usuario, contrasenia, tipo_usuario, celular = null, foto = null } = usuario;
         
         const sql = `INSERT INTO usuarios 
                      (nombre, apellido, nombre_usuario, contrasenia, tipo_usuario, celular, foto) 
-                     VALUES (?, ?, ?, ?, ?, ?, ?)`;
+                     VALUES (?, ?, ?, sha2(?, 256), ?, ?, ?)`;
         
-        // Aca guardamos la contraseña en texto plano. Esto se debe cambiar por un hash.
         const [resultado] = await conexion.execute(sql, [nombre, apellido, nombre_usuario, contrasenia, tipo_usuario, celular, foto]);
         
         return this.buscarPorId(resultado.insertId);

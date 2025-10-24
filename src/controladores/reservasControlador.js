@@ -8,7 +8,14 @@ export default class ReservasControlador{
 
     buscarTodos = async (req, res) => {
         try {
-            const reservas = await this.reservasServicio.buscarTodos();
+            const reservas = await this.reservasServicio.buscarTodos(req.user);
+            if(reservas.length === 0){
+                res.status(404).json({
+                    estado: false, 
+                    mensaje: 'No se encontraron reservas a su nombre'
+                });
+                return;
+            }
             res.json({
                 estado: true, 
                 reservas: reservas
@@ -50,30 +57,12 @@ export default class ReservasControlador{
 
     crear = async (req, res) => {
         try {
-            const { fecha_reserva, salon_id, usuario_id, turno_id, importe_total, servicios } = req.body;
-
-            if(!fecha_reserva || !salon_id || !usuario_id || !turno_id || !importe_total || !servicios){ 
-                return res.status(400).json({
-                    estado: false,
-                    mensaje: 'Faltan datos requeridos (fecha_reserva, salon_id, usuario_id, turno_id, importe_total, servicios).'
-                });
-            }
-
-            if (!Array.isArray(servicios)) {
-                return res.status(400).json({
-                    estado: false,
-                    mensaje: 'El campo "servicios" debe ser un array.'
-                });
-            }
-            
             const reservaCreada = await this.reservasServicio.crear(req.body);
-
             res.status(201).json({
                 estado: true,
                 mensaje: 'Reserva creada exitosamente.',
                 reserva: reservaCreada
             });
-
         } catch (err) {
             console.log('Error en POST /reservas', err);
             res.status(500).json({

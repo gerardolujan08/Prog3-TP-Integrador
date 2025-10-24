@@ -6,8 +6,10 @@ export default class ReservasServicio {
         this.reservas = new Reservas();
     }
 
-    buscarTodos = () => {
-        return this.reservas.buscarTodos();
+    buscarTodos = (usuario) => {
+        if(usuario.tipo_usuario < 3){
+            return this.reservas.buscarTodos();
+        } else return this.reservas.buscarPropias(usuario.usuario_id);
     }
 
     buscarPorId = (reserva_id) => {
