@@ -6,16 +6,19 @@ export default class UsuariosServicio {
         this.usuarios = new Usuarios();
     }
 
-    buscarTodos = () => {
-        return this.usuarios.buscarTodos();
+    buscarTodos = (user) => {
+        return this.usuarios.buscarTodos(user);
     }
 
     buscarPorId = (usuario_id) => {
         return this.usuarios.buscarPorId(usuario_id);
     }
 
+    buscarPorUsuario = (nombre_usuario, contrasenia) => {
+        return this.usuarios.buscarPorUsuario(nombre_usuario, contrasenia);
+    }
+
     crear = (usuario) => {
-        // Aca iría la lógica de HASH de contraseña antes de pasarlo a la DB
         return this.usuarios.crear(usuario);
     }
 

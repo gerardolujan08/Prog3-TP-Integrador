@@ -8,7 +8,7 @@ export default class UsuariosControlador{
 
     buscarTodos = async (req, res) => {
         try {
-            const usuarios = await this.usuariosServicio.buscarTodos();
+            const usuarios = await this.usuariosServicio.buscarTodos(req.user);
             res.json({
                 estado: true, 
                 usuarios: usuarios
@@ -47,17 +47,7 @@ export default class UsuariosControlador{
 
     crear = async (req, res) => {
         try {
-            const { nombre, apellido, nombre_usuario, contrasenia, tipo_usuario } = req.body;
-            const { celular, foto } = req.body;
-            if(!nombre || !apellido || !nombre_usuario || !contrasenia || !tipo_usuario){ 
-                return res.status(400).json({
-                    estado: false,
-                    mensaje: 'Faltan datos requeridos (nombre, apellido, nombre_usuario, contrasenia, tipo_usuario).'
-                });
-            }
-            
-            const nuevoUsuario = { nombre, apellido, nombre_usuario, contrasenia, tipo_usuario, celular, foto }; 
-            const usuarioCreado = await this.usuariosServicio.crear(nuevoUsuario);
+            const usuarioCreado = await this.usuariosServicio.crear(req.body);
             res.status(201).json({
                 estado: true,
                 mensaje: 'Usuario creado exitosamente.',

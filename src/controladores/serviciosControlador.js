@@ -51,15 +51,7 @@ export default class ServiciosControlador{
 
     crear = async (req, res) => {
         try {
-            const { descripcion, importe } = req.body;
-            if(!descripcion || !importe){ 
-                return res.status(400).json({
-                    estado: false,
-                    mensaje: 'Faltan datos requeridos (descripcion, importe).'
-                });
-            }
-            const nuevoServicio = { descripcion, importe }; 
-            const servicioCreado = await this.serviciosServicio.crear(nuevoServicio);
+            const servicioCreado = await this.serviciosServicio.crear(req.body);
 
             res.status(201).json({
                 estado: true,
@@ -78,17 +70,8 @@ export default class ServiciosControlador{
 
     actualizar = async (req, res) => {
         try {
-            const servicio_id = req.params.servicio_id; 
-            const { descripcion, importe } = req.body;
-            if(!descripcion || !importe){ 
-                return res.status(400).json({
-                    estado: false,
-                    mensaje: 'Faltan datos requeridos (descripcion, importe).'
-                });
-            }
-            const servicioActualizado = { descripcion, importe };
-            const actualizado = await this.serviciosServicio.actualizar(servicio_id, servicioActualizado);
-            
+            const servicio_id = req.params.servicio_id;
+            const actualizado = await this.serviciosServicio.actualizar(servicio_id, req.body);            
             if(!actualizado){
                 return res.status(4404).json({
                     estado: false,

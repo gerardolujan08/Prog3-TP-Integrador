@@ -50,16 +50,7 @@ export default class TurnosControlador{
 
     crear = async (req, res) => {
         try {
-            const { orden, hora_desde, hora_hasta } = req.body;
-            if(!orden || !hora_desde || !hora_hasta){
-                return res.status(400).json({
-                    estado: false,
-                    mensaje: 'Faltan datos requeridos (orden, hora_desde, hora_hasta).'
-                });
-            }
-            const nuevoTurno = { orden, hora_desde, hora_hasta };
-            const turnoCreado = await this.turnosServicio.crear(nuevoTurno);
-
+            const turnoCreado = await this.turnosServicio.crear(req.body);
             res.status(201).json({
                 estado: true,
                 mensaje: 'Turno creado exitosamente.',
