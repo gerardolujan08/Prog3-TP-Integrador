@@ -9,7 +9,7 @@ export default class SalonesControlador{
     estado = (req, res) => {
         res.json({
             estado: true,
-            mensaje: 'API funcionando correctamente'
+            mensaje: 'Salones funcionando correctamente.'
         });
     }
 
@@ -58,11 +58,13 @@ export default class SalonesControlador{
 
     crear = async (req, res) => {
         try {
-            const { titulo, direccion, capacidad, importe } = req.body;
+            const { titulo, direccion, latitud, longitud, capacidad, importe } = req.body;
 
             const salon = {
                 titulo,
                 direccion,
+                latitud,
+                longitud,
                 capacidad,
                 importe
             }

@@ -20,9 +20,9 @@ export default class Salones {
     }
 
     crear = async(salon) => {
-        const { titulo, direccion, capacidad, importe } = salon;
-        const sql = 'INSERT INTO salones (titulo, direccion, capacidad, importe) VALUES (?, ?, ?, ?)';
-        const [resultado] = await conexion.execute(sql, [titulo, direccion, capacidad, importe]);
+        const { titulo, direccion, latitud, longitud, capacidad, importe } = salon;
+        const sql = 'INSERT INTO salones (titulo, direccion, latitud, longitud, capacidad, importe) VALUES (?, ?, ?, ?, ?, ?)';
+        const [resultado] = await conexion.execute(sql, [titulo, direccion, latitud, longitud, capacidad, importe]);
 
         if (resultado.affectedRows === 0) {
             return null;

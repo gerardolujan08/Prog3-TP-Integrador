@@ -9,7 +9,7 @@ export default class Reservas {
     }
 
     buscarPropias = async(usuario_id) => {
-        const sql = 'SELECT * FROM reservas WHERE activo = 1 AND usuario_id = ?'
+        const sql = 'SELECT * FROM reservas WHERE activo = 1 AND usuario_id = ?';
         const [reservas] = await conexion.query(sql, [usuario_id])
         return reservas
     }
@@ -50,7 +50,7 @@ export default class Reservas {
             const sqlServiciosQuery = `SELECT servicio_id, importe FROM servicios WHERE servicio_id IN (${serviciosIds.join(',')})`;
             const [serviciosExistentes] = await conexion.execute(sqlServiciosQuery);
 
-            const importeSalonQuery = 'select importe from salones where salon_id = ?'
+            const importeSalonQuery = 'SELECT importe FROM salones WHERE salon_id = ?'
             const [[{importe: importe_salon}]] = await conexion.execute(importeSalonQuery, [salon_id]);
             
             const importeTotal = serviciosExistentes.reduce((total, {importe}) => total + parseFloat(importe), parseFloat(importe_salon));
