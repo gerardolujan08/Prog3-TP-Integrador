@@ -1,9 +1,11 @@
 import Reservas from "../db/reservas.js";
+import InformeServicio from "./informesServicio.js";
 
 export default class ReservasServicio {
 
     constructor(){
         this.reservas = new Reservas();
+        this.informes = new InformeServicio();
     }
 
     buscarTodos = (usuario) => {
@@ -36,5 +38,29 @@ export default class ReservasServicio {
         }
         await this.reservas.eliminar(reserva_id)
         return true;
+    }
+
+    generarInforme = async (formato) => {
+        if (formato === 'pdf') {
+            const datosReporte = await this.reservas.buscarDatosReporteCsv();
+            const buffer = await this.informes.informeReservasPdf(datosReporte);
+            return {
+                buffer,
+                headers: {
+                    'Content-Type': 'application/pdf',
+                    'Content-Disposition': 'attachment; filename="reporte-reservas.pdf"'
+                }
+            };
+        } else if (formato === 'csv') {
+            const datosReporte = await this.reservas.buscarDatosReporteCsv();
+            const path = await this.informes.informeReservasCsv(datosReporte);
+            return {
+                path,
+                headers: {
+                    'Content-Type': 'text/csv',
+                    'Content-Disposition': 'attachment; filename="reporte-reservas.csv"'
+                }
+            };
+        }
     }
 }

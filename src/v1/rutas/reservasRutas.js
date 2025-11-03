@@ -11,6 +11,7 @@ const reservasControlador = new ReservasControlador();
 const router = express.Router();
 
 router.get('/', autorizarUsuarios([1,2,3]),reservasControlador.buscarTodos);
+router.get('/informe', autorizarUsuarios([1]), reservasControlador.informe);
 router.get('/:reserva_id', autorizarUsuarios([1,2,3]),reservasControlador.buscarPorId);
 router.post('/', 
     autorizarUsuarios([1,3]),

@@ -1,4 +1,5 @@
 import ReservasServicio from "../servicios/reservasServicio.js";
+const formatosPermitidos = ['pdf', 'csv'];
 
 export default class ReservasControlador{
 
@@ -131,4 +132,49 @@ export default class ReservasControlador{
             });
         }
     }
+
+    informe = async (req, res) => {
+        try {
+            const formato = req.query.formato;
+            const formatosPermitidos = ['pdf', 'csv'];
+
+            if (!formato || !formatosPermitidos.includes(formato)) {
+                return res.status(400).send({
+                    estado: "falla",
+                    mensaje: "Formato inválido para el informe."
+                });
+            }
+
+            // generar informe
+            const {buffer, path, headers} = await this.reservasServicio.generarInforme(formato);
+
+            // setear la cabecera de respuesta
+            res.set(headers);
+
+            if (formato === 'pdf') {
+                // envía el pdf
+                res.status(200).end(buffer);
+            } else if (formato === 'csv') {
+                // respuesta al cliente
+                // envío el path
+                res.status(200).download(path, (err) => {
+                    if (err) {
+                        console.error('Error al descargar el archivo CSV:', err);
+                        res.status(500).json({
+                            estado: false,
+                            mensaje: 'Error al descargar el archivo.'
+                        });
+                    }
+                });
+            }
+
+        } catch (err) {
+            console.log('Error en GET /reservas/informe', err);
+            res.status(500).json({
+                estado: false,
+                mensaje: 'Error interno del servidor.'
+            });
+        }
+    }
 }
+
