@@ -127,4 +127,29 @@ export default class Reservas {
         await conexion.execute(sql, [reserva_id]);
         return { "mensaje": "eliminado correctamente" };
     }
+
+    datosParaNotificacion = async(reserva_id) => {
+        const sql = `CALL obtenerDatosNotificacion(?)`;
+        
+        const [reserva] = await conexion.execute(sql, [reserva_id]);
+        if(reserva.length === 0){
+            return null;
+        }
+        
+        return reserva;
+    }
+
+    buscarDatosReporteCsv = async() => {
+        const sql = `
+            SELECT 
+                DATE_FORMAT(r.fecha_reserva, '%Y-%m-%d') as fecha_reserva,
+                CONCAT('Reserva #', r.reserva_id) as titulo,
+                r.reserva_id as orden
+            FROM reservas r
+            WHERE r.activo = 1
+            ORDER BY r.fecha_reserva DESC`;
+        
+        const [result] = await conexion.query(sql);
+        return result;
+    }
 }
