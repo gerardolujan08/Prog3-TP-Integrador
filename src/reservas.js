@@ -5,7 +5,8 @@ import { router as v1TurnosRutas} from './v1/rutas/turnosRutas.js'
 import { router as v1UsuariosRutas} from './v1/rutas/usuariosRutas.js'
 import { router as v1ReservasRutas} from './v1/rutas/reservasRutas.js'
 import { router as v1NotificacionesRutas} from './v1/rutas/notificacionesRutas.js'
-import {router as v1AuthRutas} from "./v1/rutas/authRutas.js";
+import { router as v1AuthRutas} from "./v1/rutas/authRutas.js";
+import { router as v1EstadisticasRutas } from './v1/rutas/estadisticasRutas.js';
 import passport from 'passport';
 import { estrategia, validacion } from './config/passport.js';
 import morgan from 'morgan';
@@ -24,5 +25,6 @@ app.use('/api/v1/usuarios', passport.authenticate('jwt', {session: false}), v1Us
 app.use('/api/v1/reservas', passport.authenticate('jwt', {session: false}), v1ReservasRutas);
 app.use('/api/v1/notificaciones', passport.authenticate('jwt', {session: false}), v1NotificacionesRutas);
 app.use('/api/v1/auth', v1AuthRutas);
+app.use('/api/v1/estadisticas', passport.authenticate('jwt', {session: false}), v1EstadisticasRutas);
 
 export default app;
