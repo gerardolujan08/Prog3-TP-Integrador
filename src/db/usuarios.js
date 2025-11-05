@@ -48,7 +48,7 @@ export default class Usuarios {
         
         const sql = `
             UPDATE usuarios SET 
-            nombre = ?, apellido = ?, nombre_usuario = ?, contrasenia = ?, 
+            nombre = ?, apellido = ?, nombre_usuario = ?, contrasenia = sha2(?, 256), 
             tipo_usuario = ?, celular = ?, foto = ? 
             WHERE usuario_id = ?`;
 
