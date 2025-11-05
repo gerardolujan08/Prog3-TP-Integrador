@@ -1,10 +1,7 @@
 import express from 'express';
 import passport from 'passport';
 import morgan from 'morgan';
-import swaggerJsdoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
-import path from 'path';
-import { fileURLToPath } from 'url';
 
 import { router as v1SalonesRutas} from './v1/rutas/salonesRutas.js'
 import { router as v1ServiciosRutas} from './v1/rutas/serviciosRutas.js'
@@ -15,36 +12,7 @@ import { router as v1NotificacionesRutas} from './v1/rutas/notificacionesRutas.j
 import { router as v1AuthRutas} from "./v1/rutas/authRutas.js";
 import { router as v1EstadisticasRutas } from './v1/rutas/estadisticasRutas.js';
 import { estrategia, validacion } from './config/passport.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const swaggerOptions = {
-    swaggerDefinition: {
-        openapi: '3.0.0',
-        info: {
-            title: 'API PROGIII - Gestión de Salones de Fiestas',
-            version: '1.0.0',
-            description: 'API REST para el Trabajo Final Integrador de Programación III. Sistema de gestión de reservas para salones de fiestas.'
-        },
-        components: {
-            securitySchemes: {
-                bearerAuth: {
-                    type: 'http',
-                    scheme: 'bearer',
-                    bearerFormat: 'JWT',
-                    description: 'Ingresa el token JWT (sin "Bearer ") para autorizarte.'
-                }
-            }
-        },
-        security: [{
-            bearerAuth: []
-        }]
-    },
-    apis: [path.join(__dirname, 'v1/rutas/*.js')]
-};
-
-const swaggerDocs = swaggerJsdoc(swaggerOptions);
+import swaggerDocs from './config/swaggerConfig.js';
 
 const app = express();
 app.use(express.json());
