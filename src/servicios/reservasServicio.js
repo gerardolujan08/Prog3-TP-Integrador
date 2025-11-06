@@ -1,11 +1,15 @@
 import Reservas from "../db/reservas.js";
+import ReservasServicios from "../db/reservas_servicios.js";
 import InformeServicio from "./informesServicio.js";
+import NotificacionesServicio from "./notificacionesServicio.js";
 
 export default class ReservasServicio {
 
     constructor(){
         this.reservas = new Reservas();
+        this.reservas_servicios = new ReservasServicios();
         this.informes = new InformeServicio();
+        this.notificaciones_servicios = new NotificacionesServicio();
     }
 
     buscarTodos = (usuario) => {
@@ -18,8 +22,47 @@ export default class ReservasServicio {
         return this.reservas.buscarPorId(reserva_id);
     }
 
-    crear = (reserva) => {
-        return this.reservas.crear(reserva);
+    crear = async (reserva) => {
+        
+        const {
+            fecha_reserva,
+            salon_id,
+            usuario_id,
+            turno_id,
+            foto_cumpleaniero, 
+            tematica,
+            importe_salon,
+            importe_total,
+            servicios } = reserva;
+
+        const nuevaReserva = {
+            fecha_reserva,
+            salon_id,
+            usuario_id,
+            turno_id,
+            foto_cumpleaniero, 
+            tematica,
+            importe_salon,
+            importe_total
+        }    
+
+        const result = await this.reserva.crear(nuevaReserva);
+
+        if (!result) {
+            return null;
+        }
+
+        await this.reservas_servicios.crear(result.reserva_id, servicios);     
+        
+        try {
+            const datosParaNotificacion = await this.reserva.datosParaNotificacion(result.reserva_id);
+        
+            await this.notificacioes_servicios.enviarCorreo(datosParaNotificacion);
+        } catch (notificationError) {            
+            console.log('Advertencia: No se pudo enviar el correo.');
+        }
+
+        return this.reserva.buscarPorId(result.reserva_id);
     }
 
     actualizar = async (reserva_id, reserva) => {

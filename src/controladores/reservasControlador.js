@@ -58,14 +58,46 @@ export default class ReservasControlador{
 
     crear = async (req, res) => {
         try {
-            const reservaCreada = await this.reservasServicio.crear(req.body);
-            res.status(201).json({
-                estado: true,
-                mensaje: 'Reserva creada exitosamente.',
-                reserva: reservaCreada
+            const {
+                fecha_reserva,
+                salon_id,
+                usuario_id,
+                turno_id,
+                foto_cumpleaniero, 
+                tematica,
+                importe_salon,
+                importe_total,
+                servicios } = req.body;
+
+            const reserva = {
+                fecha_reserva,
+                salon_id,
+                usuario_id,
+                turno_id,
+                foto_cumpleaniero, 
+                tematica,
+                importe_salon,
+                importe_total, 
+                servicios
+            };
+
+            const nuevaReserva = await this.reservasServicio.crear(reserva)
+
+            if (!nuevaReserva) {
+                return res.status(404).json({
+                    estado: false,
+                    mensaje: 'Reserva no creada'
+                })
+            }
+
+            res.json({
+                estado: true, 
+                mensaje: 'Reserva creada con exito',
+                salon: nuevaReserva
             });
+    
         } catch (err) {
-            console.log('Error en POST /reservas', err);
+            console.log('Error en POST /reservas/', err);
             res.status(500).json({
                 estado: false,
                 mensaje: 'Error interno del servidor.'
