@@ -3,16 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Reservas - Canchas de Fútbol</title>
+    <title>Sistema de Reservas - Salones de Fiestas</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-    <!-- Pantalla de Login -->
     <div id="loginScreen" class="screen active">
         <div class="login-container">
             <div class="login-card">
-                <h1><i class="fas fa-futbol"></i> Canchas de Fútbol</h1>
+                <h1><i class="fas fa-birthday-cake"></i> Salones de Fiestas</h1>
                 <h2>Iniciar Sesión</h2>
                 
                 <form id="loginForm">
@@ -36,12 +35,10 @@
         </div>
     </div>
 
-    <!-- Pantalla Principal -->
     <div id="mainScreen" class="screen">
-        <!-- Header -->
         <header class="header">
             <div class="header-content">
-                <h1><i class="fas fa-futbol"></i> Sistema de Reservas</h1>
+                <h1><i class="fas fa-glass-cheers"></i> Sistema de Reservas</h1>
                 <div class="user-info">
                     <span id="userName">Usuario</span>
                     <button id="logoutBtn" class="btn-logout">
@@ -51,7 +48,6 @@
             </div>
         </header>
 
-        <!-- Navegación -->
         <nav class="nav-tabs">
             <button class="tab-btn active" data-tab="dashboard">
                 <i class="fas fa-chart-dashboard"></i> Dashboard
@@ -64,7 +60,6 @@
             </button>
         </nav>
 
-        <!-- TAB DASHBOARD -->
         <div id="dashboard" class="tab-content active">
             <div class="dashboard-container">
                 <h2><i class="fas fa-chart-bar"></i> Dashboard</h2>
@@ -89,8 +84,8 @@
                     <div class="stat-card">
                         <i class="fas fa-building stat-icon"></i>
                         <div class="stat-info">
-                            <h3 id="canchasDisponibles">0</h3>
-                            <p>Canchas</p>
+                            <h3 id="salonesDisponibles">0</h3>
+                            <p>Salones</p>
                         </div>
                     </div>
                 </div>
@@ -107,7 +102,6 @@
             </div>
         </div>
 
-        <!-- TAB MIS RESERVAS -->
         <div id="reservas" class="tab-content">
             <div class="reservas-container">
                 <div class="section-header">
@@ -118,7 +112,6 @@
                 </div>
                 
                 <div id="reservasList" class="reservas-list">
-                    <!-- Las reservas se cargarán aquí -->
                 </div>
                 
                 <div id="noReservas" class="no-data">
@@ -128,7 +121,6 @@
             </div>
         </div>
 
-        <!-- TAB NUEVA RESERVA -->
         <div id="nueva-reserva" class="tab-content">
             <div class="nueva-reserva-container">
                 <h2><i class="fas fa-plus-circle"></i> Nueva Reserva</h2>
@@ -141,9 +133,9 @@
                         </div>
                         
                         <div class="form-group">
-                            <label><i class="fas fa-futbol"></i> Cancha *</label>
+                            <label><i class="fas fa-map-marker-alt"></i> Salón *</label>
                             <select id="salonSelect" required>
-                                <option value="">Seleccionar cancha...</option>
+                                <option value="">Seleccionar salón...</option>
                             </select>
                         </div>
                     </div>
@@ -159,7 +151,6 @@
                         <div class="form-group">
                             <label><i class="fas fa-concierge-bell"></i> Servicios Adicionales</label>
                             <div id="serviciosList" class="servicios-list">
-                                <!-- Los servicios se cargarán aquí -->
                             </div>
                             <small style="color: #666; font-size: 0.9em;">Al menos un servicio es requerido</small>
                         </div>
@@ -176,7 +167,6 @@
         </div>
     </div>
 
-    <!-- Loading Overlay -->
     <div id="loadingOverlay" class="loading-overlay">
         <div class="spinner"></div>
         <p>Cargando...</p>
