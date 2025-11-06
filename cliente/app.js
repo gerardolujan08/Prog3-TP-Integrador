@@ -268,6 +268,7 @@ async function loadFormData() {
     showLoading(true);
     
     try {
+        // Cargar salones (OBLIGATORIO)
         console.log('Solicitando salones...');
         const salonesResponse = await apiRequest('/salones');
         console.log('Respuesta de salones:', salonesResponse);

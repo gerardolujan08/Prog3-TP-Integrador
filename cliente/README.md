@@ -4,7 +4,11 @@ Este proyecto es un cliente web (frontend) simple, desarrollado como un extra op
 
 ⚠️ Dependencia Crítica: El Backend (API)
 
-Este cliente web NO FUNCIONARÁ por sí solo.
+### ✅ **Funcionalidades Implementadas:**
+- **🔐 Autenticación:** Login con JWT
+- **📊 Dashboard:** KPIs y estadísticas básicas
+- **📅 Mis Reservas:** Visualización de reservas del usuario
+- **➕ Nueva Reserva:** Formulario completo para crear reservas
 
 Es una aplicación "frontend" pura (solo HTML, CSS y JS) que necesita conectarse a la API para obtener datos e iniciar sesión.
 

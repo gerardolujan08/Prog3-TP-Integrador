@@ -9,7 +9,6 @@ export default class ReservasServicio {
         this.reservas = new Reservas();
         this.reservas_servicios = new ReservasServicios();
         this.informes = new InformeServicio();
-        this.notificaciones_servicios = new NotificacionesServicio();
     }
 
     buscarTodos = (usuario) => {
