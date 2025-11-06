@@ -143,51 +143,25 @@ async function loadDashboardData() {
             const stats = estadisticasResponse.estadisticas;
             
             document.getElementById('totalReservas').textContent = stats.total_reservas || 0;
-            document.getElementById('proximasReservas').textContent = stats.total_reservas || 0;
+            document.getElementById('totalClientes').textContent = stats.total_clientes || 0;
             
-            const salonesResponse = await apiRequest('/salones');
-            if (salonesResponse.estado) {
-                const salones = salonesResponse.salones || [];
-                document.getElementById('salonesDisponibles').textContent = salones.length;
-            }
+            const ingresos = stats.ingresos_totales || 0;
+            document.getElementById('ingresosTotales').textContent = `$${parseFloat(ingresos).toLocaleString('es-ES')}`;
             
-            console.log('Estadísticas cargadas desde stored procedure:', stats);
         } else {
             console.warn('No se pudieron cargar las estadísticas del stored procedure');
-            await loadDashboardDataFallback();
+            document.getElementById('totalReservas').textContent = 'Error';
+            document.getElementById('totalClientes').textContent = 'Error';
+            document.getElementById('ingresosTotales').textContent = 'Error';
         }
         
     } catch (error) {
         console.error('Error cargando dashboard:', error);
-        await loadDashboardDataFallback();
     }
 }
 
+
 async function loadDashboardDataFallback() {
-    try {
-        console.log('Usando método de respaldo para cargar dashboard');
-        
-        const reservasResponse = await apiRequest('/reservas');
-        const salonesResponse = await apiRequest('/salones');
-        
-        if (reservasResponse.estado) {
-            const reservas = reservasResponse.reservas || [];
-            const totalReservas = reservas.length;
-            const hoy = new Date().toISOString().split('T')[0];
-            const proximasReservas = reservas.filter(r => r.fecha_reserva >= hoy).length;
-            
-            document.getElementById('totalReservas').textContent = totalReservas;
-            document.getElementById('proximasReservas').textContent = proximasReservas;
-        }
-        
-        if (salonesResponse.estado) {
-            const salones = salonesResponse.salones || [];
-            document.getElementById('salonesDisponibles').textContent = salones.length;
-        }
-        
-    } catch (error) {
-        console.error('Error en método de respaldo:', error);
-    }
 }
 
 async function loadReservas() {

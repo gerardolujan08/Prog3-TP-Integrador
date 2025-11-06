@@ -189,10 +189,32 @@ export default class Reservas {
     }
 
     buscarDatosReporteCsv = async() => {
-        const sql = 'CALL sp_datos_informe_reservas()';
+        const sql = `
+            SELECT
+                r.reserva_id,
+                DATE_FORMAT(r.fecha_reserva, '%d/%m/%Y') AS fecha_reserva,
+                s.titulo,
+                t.orden,
+                u.nombre_usuario,
+                r.importe_total,
+                CONCAT(DATE_FORMAT(t.hora_desde, '%H:%i'), ' - ', DATE_FORMAT(t.hora_hasta, '%H:%i')) AS turno,
+                COUNT(rs.servicio_id) AS total_servicios
+            FROM
+                reservas r
+            JOIN salones s ON r.salon_id = s.salon_id
+            JOIN turnos t ON r.turno_id = t.turno_id
+            JOIN usuarios u ON r.usuario_id = u.usuario_id
+            LEFT JOIN reservas_servicios rs ON r.reserva_id = rs.reserva_id
+            WHERE
+                r.activo = 1
+            GROUP BY
+                r.reserva_id, s.titulo, t.orden, t.hora_desde, t.hora_hasta, u.nombre_usuario
+            ORDER BY
+                r.reserva_id ASC
+        `;
         const [resultado] = await conexion.execute(sql);
         
-        return resultado[0];
+        return resultado;
     }
 
     actualizarFotoCumpleaniero = async (reserva_id, rutaFoto) => {
