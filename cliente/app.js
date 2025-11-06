@@ -144,17 +144,14 @@ function switchTab(tabName) {
 
 async function loadDashboardData() {
     try {
-        // Usar el endpoint de estadísticas que utiliza el stored procedure
         const estadisticasResponse = await apiRequest('/estadisticas');
         
         if (estadisticasResponse.estado && estadisticasResponse.estadisticas) {
             const stats = estadisticasResponse.estadisticas;
             
-            // Usar datos del stored procedure
             document.getElementById('totalReservas').textContent = stats.total_reservas || 0;
             document.getElementById('proximasReservas').textContent = stats.total_reservas || 0; // Simplificado
             
-            // Para las canchas, seguimos usando el endpoint de salones ya que no está en el SP
             const salonesResponse = await apiRequest('/salones');
             if (salonesResponse.estado) {
                 const salones = salonesResponse.salones || [];
@@ -246,8 +243,8 @@ function displayReservas(reservas) {
                     <span>${formatDate(reserva.fecha_reserva)}</span>
                 </div>
                 <div class="detail-item">
-                    <i class="fas fa-futbol"></i>
-                    <span>${reserva.salon_nombre || 'Cancha'}</span>
+                    <i class="fas fa-home"></i>
+                    <span>${reserva.salon_nombre || 'Salón'}</span>
                 </div>
                 <div class="detail-item">
                     <i class="fas fa-clock"></i>
@@ -279,16 +276,16 @@ async function loadFormData() {
     showLoading(true);
     
     try {
-        // Cargar canchas (OBLIGATORIO)
-        console.log('Solicitando canchas...');
+        // Cargar salones (OBLIGATORIO)
+        console.log('Solicitando salones...');
         const salonesResponse = await apiRequest('/salones');
-        console.log('Respuesta de canchas:', salonesResponse);
+        console.log('Respuesta de salones:', salonesResponse);
         
         if (salonesResponse && salonesResponse.estado && salonesResponse.salones) {
             populateSelect('salonSelect', salonesResponse.salones, 'salon_id', 'titulo');
         } else {
-            console.warn('No se pudieron cargar las canchas:', salonesResponse);
-            showError('reservaError', 'No se pudieron cargar las canchas disponibles');
+            console.warn('No se pudieron cargar los salones:', salonesResponse);
+            showError('reservaError', 'No se pudieron cargar los salones disponibles');
             return;
         }
         
@@ -421,7 +418,7 @@ function createBasicService() {
             </label>
         </div>
         <small style="color: #888; display: block; margin-top: 8px;">
-            * Servicio básico de reserva de cancha
+            * Servicio básico de reserva de salón
         </small>
     `;
     

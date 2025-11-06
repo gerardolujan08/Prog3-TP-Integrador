@@ -10,8 +10,6 @@ Aplicación web cliente para el sistema de reservas de canchas de fútbol. Permi
 - **📊 Dashboard:** KPIs y estadísticas básicas
 - **📅 Mis Reservas:** Visualización de reservas del usuario
 - **➕ Nueva Reserva:** Formulario completo para crear reservas
-- **📱 Responsive:** Adaptado para móviles y tablets
-- **🎨 UI Moderna:** Interfaz con gradientes y efectos
 
 ### 🛠️ **Tecnologías Utilizadas:**
 - **HTML5** - Estructura semántica
