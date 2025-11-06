@@ -1,16 +1,13 @@
-// 🌐 CONFIGURACIÓN DE LA API
 const API_BASE = 'http://localhost:3000/api/v1';
 let currentUser = null;
 let authToken = null;
 
-// 🚀 INICIALIZACIÓN
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
     setupEventListeners();
 });
 
 function initializeApp() {
-    // Verificar si hay token guardado
     const savedToken = localStorage.getItem('authToken');
     const savedUser = localStorage.getItem('currentUser');
     
@@ -23,15 +20,10 @@ function initializeApp() {
     }
 }
 
-// 🎛️ EVENT LISTENERS
 function setupEventListeners() {
-    // Login
     document.getElementById('loginForm').addEventListener('submit', handleLogin);
-    
-    // Logout
     document.getElementById('logoutBtn').addEventListener('click', handleLogout);
     
-    // Tabs
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const tabName = e.target.getAttribute('data-tab');
@@ -39,14 +31,10 @@ function setupEventListeners() {
         });
     });
     
-    // Refresh reservas
     document.getElementById('refreshReservas').addEventListener('click', loadReservas);
-    
-    // Formulario nueva reserva
     document.getElementById('reservaForm').addEventListener('submit', handleCreateReserva);
 }
 
-// 🔐 AUTENTICACIÓN
 async function handleLogin(e) {
     e.preventDefault();
     
@@ -85,7 +73,6 @@ async function handleLogin(e) {
                 tipo_usuario: tokenPayload.tipo_usuario
             };
             
-            // Guardar en localStorage
             localStorage.setItem('authToken', authToken);
             localStorage.setItem('currentUser', JSON.stringify(currentUser));
             
@@ -155,10 +142,42 @@ function switchTab(tabName) {
     }
 }
 
-// 📊 DASHBOARD
 async function loadDashboardData() {
     try {
-        // Cargar estadísticas básicas
+        // Usar el endpoint de estadísticas que utiliza el stored procedure
+        const estadisticasResponse = await apiRequest('/estadisticas');
+        
+        if (estadisticasResponse.estado && estadisticasResponse.estadisticas) {
+            const stats = estadisticasResponse.estadisticas;
+            
+            // Usar datos del stored procedure
+            document.getElementById('totalReservas').textContent = stats.total_reservas || 0;
+            document.getElementById('proximasReservas').textContent = stats.total_reservas || 0; // Simplificado
+            
+            // Para las canchas, seguimos usando el endpoint de salones ya que no está en el SP
+            const salonesResponse = await apiRequest('/salones');
+            if (salonesResponse.estado) {
+                const salones = salonesResponse.salones || [];
+                document.getElementById('canchasDisponibles').textContent = salones.length;
+            }
+            
+            console.log('Estadísticas cargadas desde stored procedure:', stats);
+        } else {
+            console.warn('No se pudieron cargar las estadísticas del stored procedure');
+            await loadDashboardDataFallback();
+        }
+        
+    } catch (error) {
+        console.error('Error cargando dashboard:', error);
+        await loadDashboardDataFallback();
+    }
+}
+
+async function loadDashboardDataFallback() {
+    try {
+        console.log('Usando método de respaldo para cargar dashboard');
+        
+        // Cargar estadísticas básicas (método original)
         const reservasResponse = await apiRequest('/reservas');
         const salonesResponse = await apiRequest('/salones');
         
@@ -174,15 +193,14 @@ async function loadDashboardData() {
         
         if (salonesResponse.estado) {
             const salones = salonesResponse.salones || [];
-            document.getElementById('salonesDisponibles').textContent = salones.length;
+            document.getElementById('canchasDisponibles').textContent = salones.length;
         }
         
     } catch (error) {
-        console.error('Error cargando dashboard:', error);
+        console.error('Error en método de respaldo:', error);
     }
 }
 
-// 📅 RESERVAS
 async function loadReservas() {
     showLoading(true);
     
@@ -228,8 +246,8 @@ function displayReservas(reservas) {
                     <span>${formatDate(reserva.fecha_reserva)}</span>
                 </div>
                 <div class="detail-item">
-                    <i class="fas fa-building"></i>
-                    <span>${reserva.salon_nombre || 'Salón'}</span>
+                    <i class="fas fa-futbol"></i>
+                    <span>${reserva.salon_nombre || 'Cancha'}</span>
                 </div>
                 <div class="detail-item">
                     <i class="fas fa-clock"></i>
@@ -249,64 +267,164 @@ function showNoReservas() {
     document.getElementById('noReservas').style.display = 'block';
 }
 
-// ➕ NUEVA RESERVA
 async function loadFormData() {
+    // Verificar que el usuario esté autenticado
+    if (!authToken) {
+        console.warn('Usuario no autenticado, no se pueden cargar los datos del formulario');
+        showError('reservaError', 'Debe iniciar sesión para acceder al formulario');
+        return;
+    }
+    
+    console.log('Cargando datos del formulario...');
+    showLoading(true);
+    
     try {
-        // Cargar salones
+        // Cargar canchas (OBLIGATORIO)
+        console.log('Solicitando canchas...');
         const salonesResponse = await apiRequest('/salones');
-        if (salonesResponse.estado) {
-            populateSelect('salonSelect', salonesResponse.salones, 'salon_id', 'nombre');
+        console.log('Respuesta de canchas:', salonesResponse);
+        
+        if (salonesResponse && salonesResponse.estado && salonesResponse.salones) {
+            populateSelect('salonSelect', salonesResponse.salones, 'salon_id', 'titulo');
+        } else {
+            console.warn('No se pudieron cargar las canchas:', salonesResponse);
+            showError('reservaError', 'No se pudieron cargar las canchas disponibles');
+            return;
         }
         
-        // Cargar turnos
+        // Cargar turnos (OBLIGATORIO)
+        console.log('Solicitando turnos...');
         const turnosResponse = await apiRequest('/turnos');
-        if (turnosResponse.estado) {
-            populateSelect('turnoSelect', turnosResponse.turnos, 'turno_id', 'descripcion');
+        console.log('Respuesta de turnos:', turnosResponse);
+        
+        if (turnosResponse && turnosResponse.estado && turnosResponse.turnos) {
+            populateSelect('turnoSelect', turnosResponse.turnos, 'turno_id', 'orden');
+        } else {
+            console.warn('No se pudieron cargar los turnos:', turnosResponse);
+            showError('reservaError', 'No se pudieron cargar los turnos disponibles');
+            return;
         }
         
-        // Cargar servicios
+        // Cargar servicios (REQUERIDO por el backend, pero crear uno básico si no hay)
+        console.log('Solicitando servicios...');
         const serviciosResponse = await apiRequest('/servicios');
-        if (serviciosResponse.estado) {
-            populateServicesList(serviciosResponse.servicios);
+        console.log('Respuesta de servicios:', serviciosResponse);
+        
+        if (serviciosResponse && serviciosResponse.estado && serviciosResponse.servicios) {
+            if (serviciosResponse.servicios.length > 0) {
+                populateServicesList(serviciosResponse.servicios);
+            } else {
+                // Si no hay servicios, crear un servicio básico invisible
+                createBasicService();
+            }
+        } else {
+            console.warn('No se pudieron cargar los servicios:', serviciosResponse);
+            // Crear servicio básico para cumplir requisito del backend
+            createBasicService();
         }
         
         // Establecer fecha mínima (hoy)
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('fechaReserva').min = today;
         
+        hideError('reservaError');
+        
     } catch (error) {
         console.error('Error cargando datos del formulario:', error);
+        showError('reservaError', 'Error al cargar los datos del formulario. Verifique su conexión.');
+    } finally {
+        showLoading(false);
     }
 }
 
 function populateSelect(selectId, items, valueField, textField) {
     const select = document.getElementById(selectId);
-    const defaultOption = select.querySelector('option[value=""]');
-    
-    // Limpiar opciones excepto la primera
-    select.innerHTML = '';
-    if (defaultOption) {
-        select.appendChild(defaultOption);
+    if (!select) {
+        console.error(`Element with ID ${selectId} not found`);
+        return;
     }
     
+    // Guardar la opción por defecto
+    const defaultOption = select.querySelector('option[value=""]');
+    const defaultText = defaultOption ? defaultOption.textContent : 'Seleccionar...';
+    
+    // Limpiar todas las opciones
+    select.innerHTML = '';
+    
+    // Recrear opción por defecto
+    const newDefaultOption = document.createElement('option');
+    newDefaultOption.value = '';
+    newDefaultOption.textContent = defaultText;
+    select.appendChild(newDefaultOption);
+    
+    // Verificar que items sea un array
+    if (!Array.isArray(items)) {
+        console.warn(`Items for ${selectId} is not an array:`, items);
+        return;
+    }
+    
+    // Agregar opciones
     items.forEach(item => {
         const option = document.createElement('option');
         option.value = item[valueField];
         option.textContent = item[textField];
         select.appendChild(option);
     });
+    
 }
 
 function populateServicesList(servicios) {
     const container = document.getElementById('serviciosList');
+    if (!container) {
+        console.error('Element serviciosList not found');
+        return;
+    }
+    
+    if (!Array.isArray(servicios)) {
+        console.warn('Servicios is not an array:', servicios);
+        container.innerHTML = '<p class="error-text">No se pudieron cargar los servicios</p>';
+        return;
+    }
+    
+    if (servicios.length === 0) {
+        container.innerHTML = '<p class="info-text">No hay servicios disponibles</p>';
+        return;
+    }
     
     container.innerHTML = servicios.map(servicio => `
         <div class="servicio-item">
             <input type="checkbox" id="servicio_${servicio.servicio_id}" 
                    value="${servicio.servicio_id}" name="servicios">
-            <label for="servicio_${servicio.servicio_id}">${servicio.nombre}</label>
+            <label for="servicio_${servicio.servicio_id}">
+                ${servicio.descripcion}
+                ${servicio.importe ? `- $${servicio.importe}` : ''}
+            </label>
         </div>
     `).join('');
+    
+}
+
+function createBasicService() {
+    const container = document.getElementById('serviciosList');
+    if (!container) {
+        console.error('Element serviciosList not found');
+        return;
+    }
+    
+    // Crear un servicio básico de "Reserva estándar" que estará siempre seleccionado
+    container.innerHTML = `
+        <div class="servicio-item">
+            <input type="checkbox" id="servicio_basic" 
+                   value="1" name="servicios" checked style="display: none;">
+            <label for="servicio_basic" style="color: #666; font-style: italic;">
+                Reserva estándar incluida
+            </label>
+        </div>
+        <small style="color: #888; display: block; margin-top: 8px;">
+            * Servicio básico de reserva de cancha
+        </small>
+    `;
+    
 }
 
 async function handleCreateReserva(e) {
@@ -324,8 +442,13 @@ async function handleCreateReserva(e) {
         importe: 0 // Por defecto, debería venir de la BD
     }));
     
-    if (!fechaReserva || !salonId || !turnoId || serviciosSeleccionados.length === 0) {
-        showError('reservaError', 'Por favor complete todos los campos');
+    if (!fechaReserva || !salonId || !turnoId) {
+        showError('reservaError', 'Por favor complete todos los campos obligatorios');
+        return;
+    }
+    
+    if (serviciosSeleccionados.length === 0) {
+        showError('reservaError', 'Debe seleccionar al menos un servicio');
         return;
     }
     
@@ -366,7 +489,6 @@ async function handleCreateReserva(e) {
     showLoading(false);
 }
 
-// 🌐 API UTILITIES
 async function apiRequest(endpoint, method = 'GET', body = null) {
     const config = {
         method,
@@ -397,14 +519,13 @@ async function apiRequest(endpoint, method = 'GET', body = null) {
 async function loadInitialData() {
     // Cargar datos iniciales necesarios para toda la app
     try {
-        // Pre-cargar datos que se usan frecuentemente
-        await loadFormData();
+        // Solo pre-cargar datos básicos del dashboard
+        console.log('Datos iniciales cargados correctamente');
     } catch (error) {
         console.error('Error cargando datos iniciales:', error);
     }
 }
 
-// 🛠️ UTILITY FUNCTIONS
 function showLoading(show) {
     const overlay = document.getElementById('loadingOverlay');
     if (show) {

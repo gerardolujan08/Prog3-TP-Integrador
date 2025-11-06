@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Reservas - Casa de Cumpleaños</title>
+    <title>Sistema de Reservas - Canchas de Fútbol</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-    <!-- 🔐 PANTALLA DE LOGIN -->
+    <!-- Pantalla de Login -->
     <div id="loginScreen" class="screen active">
         <div class="login-container">
             <div class="login-card">
-                <h1><i class="fas fa-birthday-cake"></i> Casa de Cumpleaños</h1>
+                <h1><i class="fas fa-futbol"></i> Canchas de Fútbol</h1>
                 <h2>Iniciar Sesión</h2>
                 
                 <form id="loginForm">
@@ -36,12 +36,12 @@
         </div>
     </div>
 
-    <!-- 🏠 PANTALLA PRINCIPAL -->
+    <!-- Pantalla Principal -->
     <div id="mainScreen" class="screen">
         <!-- Header -->
         <header class="header">
             <div class="header-content">
-                <h1><i class="fas fa-birthday-cake"></i> Sistema de Reservas</h1>
+                <h1><i class="fas fa-futbol"></i> Sistema de Reservas</h1>
                 <div class="user-info">
                     <span id="userName">Usuario</span>
                     <button id="logoutBtn" class="btn-logout">
@@ -64,7 +64,7 @@
             </button>
         </nav>
 
-        <!-- 📊 TAB DASHBOARD -->
+        <!-- TAB DASHBOARD -->
         <div id="dashboard" class="tab-content active">
             <div class="dashboard-container">
                 <h2><i class="fas fa-chart-bar"></i> Dashboard</h2>
@@ -89,8 +89,8 @@
                     <div class="stat-card">
                         <i class="fas fa-building stat-icon"></i>
                         <div class="stat-info">
-                            <h3 id="salonesDisponibles">0</h3>
-                            <p>Salones</p>
+                            <h3 id="canchasDisponibles">0</h3>
+                            <p>Canchas</p>
                         </div>
                     </div>
                 </div>
@@ -107,7 +107,7 @@
             </div>
         </div>
 
-        <!-- 📅 TAB MIS RESERVAS -->
+        <!-- TAB MIS RESERVAS -->
         <div id="reservas" class="tab-content">
             <div class="reservas-container">
                 <div class="section-header">
@@ -128,7 +128,7 @@
             </div>
         </div>
 
-        <!-- ➕ TAB NUEVA RESERVA -->
+        <!-- TAB NUEVA RESERVA -->
         <div id="nueva-reserva" class="tab-content">
             <div class="nueva-reserva-container">
                 <h2><i class="fas fa-plus-circle"></i> Nueva Reserva</h2>
@@ -136,31 +136,32 @@
                 <form id="reservaForm" class="reserva-form">
                     <div class="form-row">
                         <div class="form-group">
-                            <label><i class="fas fa-calendar"></i> Fecha de Reserva</label>
+                            <label><i class="fas fa-calendar"></i> Fecha de Reserva *</label>
                             <input type="date" id="fechaReserva" required>
                         </div>
                         
                         <div class="form-group">
-                            <label><i class="fas fa-building"></i> Salón</label>
+                            <label><i class="fas fa-futbol"></i> Cancha *</label>
                             <select id="salonSelect" required>
-                                <option value="">Seleccionar salón...</option>
+                                <option value="">Seleccionar cancha...</option>
                             </select>
                         </div>
                     </div>
                     
                     <div class="form-row">
                         <div class="form-group">
-                            <label><i class="fas fa-clock"></i> Turno</label>
+                            <label><i class="fas fa-clock"></i> Turno *</label>
                             <select id="turnoSelect" required>
                                 <option value="">Seleccionar turno...</option>
                             </select>
                         </div>
                         
                         <div class="form-group">
-                            <label><i class="fas fa-concierge-bell"></i> Servicios</label>
+                            <label><i class="fas fa-concierge-bell"></i> Servicios Adicionales</label>
                             <div id="serviciosList" class="servicios-list">
                                 <!-- Los servicios se cargarán aquí -->
                             </div>
+                            <small style="color: #666; font-size: 0.9em;">Al menos un servicio es requerido</small>
                         </div>
                     </div>
                     
@@ -175,7 +176,7 @@
         </div>
     </div>
 
-    <!-- 🔄 LOADING OVERLAY -->
+    <!-- Loading Overlay -->
     <div id="loadingOverlay" class="loading-overlay">
         <div class="spinner"></div>
         <p>Cargando...</p>
