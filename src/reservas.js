@@ -3,6 +3,7 @@ import passport from 'passport';
 import morgan from 'morgan';
 import swaggerUi from 'swagger-ui-express';
 import cors from 'cors';
+import fs from 'fs';
 
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -12,7 +13,6 @@ import { router as v1ServiciosRutas} from './v1/rutas/serviciosRutas.js'
 import { router as v1TurnosRutas} from './v1/rutas/turnosRutas.js'
 import { router as v1UsuariosRutas} from './v1/rutas/usuariosRutas.js'
 import { router as v1ReservasRutas} from './v1/rutas/reservasRutas.js'
-import { router as v1NotificacionesRutas} from './v1/rutas/notificacionesRutas.js'
 import { router as v1AuthRutas} from "./v1/rutas/authRutas.js";
 import { router as v1EstadisticasRutas } from './v1/rutas/estadisticasRutas.js';
 import { estrategia, validacion } from './config/passport.js';
@@ -27,7 +27,10 @@ app.use(express.json());
 passport.use(estrategia)
 passport.use(validacion)
 app.use(passport.initialize())
+
+let log = fs.createWriteStream('./access.log', { flags: 'a' })
 app.use(morgan('combined'))
+app.use(morgan('combined', { stream: log }))
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -38,7 +41,6 @@ app.use('/api/v1/servicios', passport.authenticate('jwt', {session: false}), v1S
 app.use('/api/v1/turnos', passport.authenticate('jwt', {session: false}), v1TurnosRutas);
 app.use('/api/v1/usuarios', passport.authenticate('jwt', {session: false}), v1UsuariosRutas);
 app.use('/api/v1/reservas', passport.authenticate('jwt', {session: false}), v1ReservasRutas);
-app.use('/api/v1/notificaciones', passport.authenticate('jwt', {session: false}), v1NotificacionesRutas);
 app.use('/api/v1/auth', v1AuthRutas);
 app.use('/api/v1/estadisticas', passport.authenticate('jwt', {session: false}), v1EstadisticasRutas);
 

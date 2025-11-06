@@ -17,73 +17,57 @@ export default class Reservas {
         const sqlReserva = 'SELECT * FROM reservas WHERE activo = 1 AND reserva_id = ?';
         const [reserva] = await conexion.execute(sqlReserva, [reserva_id]);
 
-        if (!reserva[0]) {
+        if(reserva.length === 0){
             return null;
         }
 
-        const sqlServicios = `
-            SELECT rs.servicio_id, s.descripcion, rs.importe 
-            FROM reservas_servicios rs
-            JOIN servicios s ON rs.servicio_id = s.servicio_id
-            WHERE rs.reserva_id = ?`;
-        const [servicios] = await conexion.execute(sqlServicios, [reserva_id]);
-
-        return {
-            ...reserva[0],
-            servicios: servicios 
-        };
+        return reserva[0];
     }
 
     crear = async(reserva) => {
         const { 
-            fecha_reserva, salon_id, usuario_id, turno_id, 
-            foto_cumpleaniero = null, tematica = null,
-            servicios
-        } = reserva;
+                fecha_reserva,
+                salon_id,
+                usuario_id,
+                turno_id,
+                foto_cumpleaniero, 
+                tematica,
+                importe_salon,
+                importe_total 
+            } = reserva;
 
-        await conexion.beginTransaction(); 
+        const sql = `INSERT INTO reservas 
+            (fecha_reserva, salon_id, usuario_id, turno_id, foto_cumpleaniero, tematica, importe_salon, importe_total) 
+            VALUES (?,?,?,?,?,?,?,?)`;
 
-        try {
+        const [result] = await conexion.execute(sql, [
+            fecha_reserva,
+            salon_id,
+            usuario_id,
+            turno_id,
+            foto_cumpleaniero,
+            tematica,
+            importe_salon,
+            importe_total
+        ]);
 
-            const serviciosIds = servicios.map(s => Number(s.servicio_id))
-            const sqlServiciosQuery = `SELECT servicio_id, importe FROM servicios WHERE servicio_id IN (${serviciosIds.join(',')})`;
-            const [serviciosExistentes] = await conexion.execute(sqlServiciosQuery);
-
-            const importeSalonQuery = 'SELECT importe FROM salones WHERE salon_id = ?'
-            const [[{importe: importe_salon}]] = await conexion.execute(importeSalonQuery, [salon_id]);
-            
-            const importeTotal = serviciosExistentes.reduce((total, {importe}) => total + parseFloat(importe), parseFloat(importe_salon));
-            const sqlReserva = `
-                INSERT INTO reservas 
-                (fecha_reserva, salon_id, usuario_id, turno_id, importe_total, importe_salon, foto_cumpleaniero, tematica) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
-            
-            const [resultado] = await conexion.execute(sqlReserva, [
-                fecha_reserva, salon_id, usuario_id, turno_id, 
-                importeTotal, importe_salon, foto_cumpleaniero, tematica
-            ]);
-            const reserva_id = resultado.insertId;
-
-            const serviciosValuesPlaceholder = '(?, ?, ?),'.repeat(serviciosExistentes.length).slice(0, -1);
-            const sqlServicios = `INSERT INTO reservas_servicios (reserva_id, servicio_id, importe) VALUES ${serviciosValuesPlaceholder}`;
-            const argumentos = serviciosExistentes.flatMap(({servicio_id, importe}) => [reserva_id, servicio_id, importe]);
-            await conexion.execute(sqlServicios, argumentos);
-
-            return this.buscarPorId(reserva_id);
-
-        } catch (error) {
-            await conexion.rollback(); 
-            console.error("Error en la transacción de crear reserva:", error);
-            throw error;
-        } finally {
-            await conexion.commit();
+        if (result.affectedRows === 0){
+            return null;
         }
+
+        return this.buscarPorId(result.insertId);
     }
 
     actualizar = async(reserva_id, reserva) => {
         const { 
-            fecha_reserva, salon_id, usuario_id, turno_id, 
-            importe_total, importe_salon = null, foto_cumpleaniero = null, tematica = null,
+            fecha_reserva, 
+            salon_id, 
+            usuario_id, 
+            turno_id,
+            foto_cumpleaniero, 
+            tematica,
+            importe_salon,
+            importe_total,
             servicios
         } = reserva;
 

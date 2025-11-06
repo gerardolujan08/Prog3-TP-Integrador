@@ -1,61 +1,54 @@
 import nodemailer from 'nodemailer';
-import { readFile } from 'fs/promises';
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import handlebars from 'handlebars';
 
 export default class NotificacionesServicio {
 
-    constructor() {
-        this.transporter = nodemailer.createTransport({
+    enviarCorreo = async (datosCorreo) => {        
+        const __filename = fileURLToPath(import.meta.url);
+        const __dirname = path.dirname(__filename);
+        const plantillaPath = path.join(__dirname, '../utiles/handlebars/plantilla.hbs');
+        const plantilla = fs.readFileSync(plantillaPath, 'utf-8');
+
+        const template = handlebars.compile(plantilla);
+        
+        const datos = {
+            fecha: datosCorreo[0].map(a => a.fecha),
+            salon: datosCorreo[0].map(a => a.salon),
+            turno: datosCorreo[0].map(a => a.turno),
+        };
+
+        const correoHtml = template(datos);
+        
+        const transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
-                user: process.env.USER_CORREO,
-                pass: process.env.PASS_CORREO
-            },
-            // Descomentar si es necesario probar con certificados no seguros, o deshabilitar antivirus
-            // tls: {
-            //     rejectUnauthorized: false
-            // }
+                user: process.env.USERCORREO,
+                pass: process.env.USERPASS
+            }
         });
 
-        this.cargarPlantilla();
-    }
+        const correosAdmin = datosCorreo[1].map(a => a.correoAdmin);
+        const destinatarios = correosAdmin.join(', ');
+        const correoCliente = datosCorreo[0].map(a => a.correo_cliente);
 
-    cargarPlantilla = async () => {
-        try {
-            const __filename = fileURLToPath(import.meta.url);
-            const __dirname = path.dirname(__filename);
-            const plantillaPath = path.join(__dirname, '../utiles/handlebars/plantilla.hbs');
-            
-            const plantilla = await readFile(plantillaPath, 'utf-8');
-            this.template = handlebars.compile(plantilla);
-            console.log('Plantilla de correo cargada correctamente.');
-        } catch (error) {
-            console.error('Error al cargar la plantilla de correo:', error);
-        }
-    }
-
-    enviarCorreo = async (correoDestino, datos) => {
-        if (!this.template) {
-            throw new Error('La plantilla de correo no está disponible.');
-        }
-
-        const correoHtml = this.template(datos);
-        
         const mailOptions = {
-            to: correoDestino,
+            from: process.env.USERCORREO,
+            to: destinatarios,
+            cc: correoCliente,
             subject: "Nueva Reserva Confirmada",
             html: correoHtml
         };
-
-        try {
-            const info = await this.transporter.sendMail(mailOptions);
-            console.log('Correo enviado: ', info.messageId);
-            return info;
+        
+        try{
+            await transporter.sendMail(mailOptions);
+            console.log('Correo enviado exitosamente');
+            return true;
         } catch (error) {
-            console.error('Error al enviar el correo:', error);
-            throw new Error('Error al enviar el correo');
+            console.log(`Error enviando el correo`, error);
+            return false;
         }
     }
 }
