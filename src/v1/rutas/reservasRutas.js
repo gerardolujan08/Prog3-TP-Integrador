@@ -24,7 +24,7 @@ router.get('/:reserva_id', autorizarUsuarios([1, 2, 3]), (req, res) =>
 
 router.post(
   '/',
-  autorizarUsuarios([1, 3]),
+  autorizarUsuarios([1, 2]), 
   [
     check('fecha_reserva', 'La fecha de la reserva es obligatoria').not().isEmpty(),
     check('salon_id', 'El ID del salon es obligatorio').not().isEmpty(),
@@ -65,7 +65,7 @@ router.delete('/:reserva_id', autorizarUsuarios([1]), (req, res) =>
 router.post(
   '/:reserva_id/foto_cumpleaniero',
   [
-    autorizarUsuarios([1, 3]),
+    autorizarUsuarios([1, 2]),
     upload.single('foto_cumpleaniero')
   ],
   (req, res) => reservasControlador.subirFotoCumpleaniero(req, res)

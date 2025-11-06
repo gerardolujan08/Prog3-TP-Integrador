@@ -1,6 +1,9 @@
 const API_BASE = 'http://localhost:3000/api/v1';
 let currentUser = null;
 let authToken = null;
+let salonesData = [];
+let serviciosData = [];
+let turnosData = []; //
 
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
@@ -33,6 +36,14 @@ function setupEventListeners() {
     
     document.getElementById('refreshReservas').addEventListener('click', loadReservas);
     document.getElementById('reservaForm').addEventListener('submit', handleCreateReserva);
+
+    document.getElementById('btnGenerarPDF').addEventListener('click', handleGenerarPDF);
+    document.getElementById('reservasList').addEventListener('click', handleReservaActions);
+
+    document.getElementById('editReservaForm').addEventListener('submit', handleEditReserva);
+    document.getElementById('closeEditModal').addEventListener('click', () => {
+        document.getElementById('editModalOverlay').classList.remove('active');
+    });
 }
 
 async function handleLogin(e) {
@@ -93,6 +104,11 @@ function handleLogout() {
     currentUser = null;
     localStorage.removeItem('authToken');
     localStorage.removeItem('currentUser');
+    
+    salonesData = [];
+    serviciosData = [];
+    turnosData = [];
+
     showLoginScreen();
 }
 
@@ -106,9 +122,48 @@ function showMainScreen() {
     document.getElementById('mainScreen').classList.add('active');
     
     document.getElementById('userName').textContent = currentUser.usuario;
-    
+
+    const dashboardTab = document.querySelector('[data-tab="dashboard"]');
+    const reservasTab = document.querySelector('[data-tab="reservas"]');
+    const nuevaReservaTab = document.querySelector('[data-tab="nueva-reserva"]');
+    const btnPDF = document.getElementById('btnGenerarPDF'); 
+
+    dashboardTab.style.display = 'none';
+    reservasTab.style.display = 'none';
+    nuevaReservaTab.style.display = 'none';
+    btnPDF.style.display = 'none'; 
+
+    const tipoUsuario = parseInt(currentUser.tipo_usuario);
+    let defaultTab = '';
+
+    if (tipoUsuario === 2) { 
+        reservasTab.style.display = 'block';
+        nuevaReservaTab.style.display = 'block';
+        defaultTab = 'reservas';
+        
+    } else if (tipoUsuario === 3) { 
+        dashboardTab.style.display = 'block';
+        reservasTab.style.display = 'block';
+        defaultTab = 'dashboard';
+        
+    } else if (tipoUsuario === 1) { 
+        dashboardTab.style.display = 'block';
+        reservasTab.style.display = 'block';
+        nuevaReservaTab.style.display = 'block';
+        btnPDF.style.display = 'inline-block';
+        defaultTab = 'dashboard';
+        
+    } else {
+        console.error('Tipo de usuario desconocido:', tipoUsuario);
+    }
+
     loadDashboardData();
     loadInitialData();
+    loadAllFormData();
+    
+    if (defaultTab) {
+        switchTab(defaultTab);
+    }
 }
 
 function switchTab(tabName) {
@@ -136,6 +191,26 @@ function switchTab(tabName) {
 }
 
 async function loadDashboardData() {
+    
+    const tipoUsuario = parseInt(currentUser.tipo_usuario);
+
+    if (tipoUsuario !== 1) { 
+        document.getElementById('totalReservas').textContent = '-';
+        document.getElementById('totalClientes').textContent = '-';
+        document.getElementById('ingresosTotales').textContent = '-';
+        
+        const quickActions = document.querySelector('.quick-actions');
+        if (quickActions) {
+            quickActions.style.display = 'none';
+        }
+        return;
+    }
+
+    const quickActions = document.querySelector('.quick-actions');
+    if (quickActions) {
+        quickActions.style.display = 'block';
+    }
+
     try {
         const estadisticasResponse = await apiRequest('/estadisticas');
         
@@ -149,17 +224,19 @@ async function loadDashboardData() {
             document.getElementById('ingresosTotales').textContent = `$${parseFloat(ingresos).toLocaleString('es-ES')}`;
             
         } else {
-            console.warn('No se pudieron cargar las estadísticas del stored procedure');
+            console.warn('No se pudieron cargar las estadísticas (Admin):', estadisticasResponse);
             document.getElementById('totalReservas').textContent = 'Error';
             document.getElementById('totalClientes').textContent = 'Error';
             document.getElementById('ingresosTotales').textContent = 'Error';
         }
         
     } catch (error) {
-        console.error('Error cargando dashboard:', error);
+        console.error('Error cargando dashboard (Admin):', error);
+        document.getElementById('totalReservas').textContent = 'Error';
+        document.getElementById('totalClientes').textContent = 'Error';
+        document.getElementById('ingresosTotales').textContent = 'Error';
     }
 }
-
 
 async function loadDashboardDataFallback() {
 }
@@ -197,114 +274,104 @@ function displayReservas(reservas) {
     container.style.display = 'grid';
     noData.style.display = 'none';
     
-    container.innerHTML = reservas.map(reserva => `
-        <div class="reserva-item">
-            <div class="reserva-header">
-                <div class="reserva-id">Reserva #${reserva.reserva_id}</div>
-                <div class="reserva-estado estado-activa">Activa</div>
-            </div>
-            <div class="reserva-details">
-                <div class="detail-item">
-                    <i class="fas fa-calendar"></i>
-                    <span>${formatDate(reserva.fecha_reserva)}</span>
+    const isAdmin = (parseInt(currentUser.tipo_usuario) === 1);
+    
+    container.innerHTML = reservas.map(reserva => {
+        
+        let adminButtons = '';
+        if (isAdmin) {
+            adminButtons = `
+                <div class="reserva-actions">
+                    <button class="btn-edit" data-id="${reserva.reserva_id}">Editar</button>
+                    <button class="btn-delete" data-id="${reserva.reserva_id}">Eliminar</button>
                 </div>
-                <div class="detail-item">
-                    <i class="fas fa-birthday-cake"></i>
-                    <span>${reserva.salon || 'Salón'}</span>
-                </div>
-                <div class="detail-item">
-                    <i class="fas fa-clock"></i>
-                    <span>${reserva.turno || 'Turno'}</span>
-                </div>
-                <div class="detail-item">
-                    <i class="fas fa-concierge-bell"></i>
-                    <span>${reserva.servicios} servicios</span>
-                </div>
-            </div>
-        </div>
-    `).join('');
-}
+            `;
+        }
 
+        return `
+            <div class="reserva-item">
+                ${adminButtons} 
+                <div class="reserva-header">
+                    <div class="reserva-id">Reserva #${reserva.reserva_id}</div>
+                    <div class="reserva-estado estado-activa">Activa</div>
+                </div>
+                <div class="reserva-details">
+                    <div class="detail-item">
+                        <i class="fas fa-calendar"></i>
+                        <span>${formatDate(reserva.fecha_reserva)}</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-birthday-cake"></i>
+                        <span>${reserva.salon || 'Salón'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-clock"></i>
+                        <span>${reserva.turno || 'Turno'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-concierge-bell"></i>
+                        <span>${reserva.servicios} servicios</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
 
 function showNoReservas() {
     document.getElementById('reservasList').style.display = 'none';
     document.getElementById('noReservas').style.display = 'block';
 }
 
-async function loadFormData() {
-    if (!authToken) {
-        console.warn('Usuario no autenticado, no se pueden cargar los datos del formulario');
-        showError('reservaError', 'Debe iniciar sesión para acceder al formulario');
-        return;
-    }
-    
-    console.log('Cargando datos del formulario...');
-    showLoading(true);
+async function loadAllFormData() {
+    if (!authToken) return;
     
     try {
-        console.log('Solicitando salones...');
-        const salonesResponse = await apiRequest('/salones');
-        console.log('Respuesta de salones:', salonesResponse);
-        
+        const [salonesResponse, turnosResponse, serviciosResponse] = await Promise.all([
+            apiRequest('/salones'),
+            apiRequest('/turnos'),
+            apiRequest('/servicios')
+        ]);
+
         if (salonesResponse && salonesResponse.estado && salonesResponse.salones) {
-            populateSelect('salonSelect', salonesResponse.salones, 'salon_id', 'titulo');
-        } else {
-            console.warn('No se pudieron cargar los salones:', salonesResponse);
-            showError('reservaError', 'No se pudieron cargar los salones disponibles');
-            return;
+            salonesData = salonesResponse.salones;
         }
         
-        console.log('Solicitando turnos...');
-        const turnosResponse = await apiRequest('/turnos');
-        console.log('Respuesta de turnos:', turnosResponse);
-        
         if (turnosResponse && turnosResponse.estado && turnosResponse.turnos) {
-            const turnosConDescripcion = turnosResponse.turnos.map(t => ({
+            turnosData = turnosResponse.turnos.map(t => ({
                 ...t,
                 descripcion: `${t.hora_desde.substring(0, 5)} - ${t.hora_hasta.substring(0, 5)}`
             }));
-            populateSelect('turnoSelect', turnosConDescripcion, 'turno_id', 'descripcion');
-        } else {
-            console.warn('No se pudieron cargar los turnos:', turnosResponse);
-            showError('reservaError', 'No se pudieron cargar los turnos disponibles');
-            return;
         }
-        
-        console.log('Solicitando servicios...');
-        const serviciosResponse = await apiRequest('/servicios');
-        console.log('Respuesta de servicios:', serviciosResponse);
         
         if (serviciosResponse && serviciosResponse.estado && serviciosResponse.servicios) {
-            if (serviciosResponse.servicios.length > 0) {
-                populateServicesList(serviciosResponse.servicios);
-            } else {
-                createBasicService();
-            }
-        } else {
-            console.warn('No se pudieron cargar los servicios:', serviciosResponse);
-            createBasicService();
+            serviciosData = serviciosResponse.servicios;
         }
-        
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('fechaReserva').min = today;
-        
-        hideError('reservaError');
-        
+
     } catch (error) {
-        console.error('Error cargando datos del formulario:', error);
-        showError('reservaError', 'Error al cargar los datos del formulario. Verifique su conexión.');
-    } finally {
-        showLoading(false);
+        console.error('Error cargando todos los datos de formularios:', error);
     }
+}
+
+function loadFormData() {
+    if (salonesData.length > 0) {
+        populateSelect('salonSelect', salonesData, 'salon_id', 'titulo');
+    }
+    
+    if (turnosData.length > 0) {
+        populateSelect('turnoSelect', turnosData, 'turno_id', 'descripcion');
+    }
+    
+    if (serviciosData.length > 0) {
+        populateServicesList(serviciosData, 'serviciosList');
+    }
+    
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('fechaReserva').min = today;
 }
 
 function populateSelect(selectId, items, valueField, textField) {
     const select = document.getElementById(selectId);
-    if (!select) {
-        console.error(`Element with ID ${selectId} not found`);
-        return;
-    }
-    
     const defaultOption = select.querySelector('option[value=""]');
     const defaultText = defaultOption ? defaultOption.textContent : 'Seleccionar...';
     
@@ -315,71 +382,31 @@ function populateSelect(selectId, items, valueField, textField) {
     newDefaultOption.textContent = defaultText;
     select.appendChild(newDefaultOption);
     
-    if (!Array.isArray(items)) {
-        console.warn(`Items for ${selectId} is not an array:`, items);
-        return;
-    }
-    
     items.forEach(item => {
         const option = document.createElement('option');
         option.value = item[valueField];
-        option.textContent = item[textField];
+        if (item.importe) {
+            option.textContent = `${item[textField]} ($${item.importe})`;
+        } else {
+            option.textContent = item[textField];
+        }
         select.appendChild(option);
     });
-    
 }
 
-function populateServicesList(servicios) {
-    const container = document.getElementById('serviciosList');
-    if (!container) {
-        console.error('Element serviciosList not found');
-        return;
-    }
-    
-    if (!Array.isArray(servicios)) {
-        console.warn('Servicios is not an array:', servicios);
-        container.innerHTML = '<p class="error-text">No se pudieron cargar los servicios</p>';
-        return;
-    }
-    
-    if (servicios.length === 0) {
-        container.innerHTML = '<p class="info-text">No hay servicios disponibles</p>';
-        return;
-    }
+function populateServicesList(servicios, containerId) {
+    const container = document.getElementById(containerId);
     
     container.innerHTML = servicios.map(servicio => `
         <div class="servicio-item">
-            <input type="checkbox" id="servicio_${servicio.servicio_id}" 
-                   value="${servicio.servicio_id}" name="servicios">
-            <label for="servicio_${servicio.servicio_id}">
+            <input type="checkbox" id="${containerId}_servicio_${servicio.servicio_id}" 
+                   value="${servicio.servicio_id}" name="${containerId}_servicios">
+            <label for="${containerId}_servicio_${servicio.servicio_id}">
                 ${servicio.descripcion}
                 ${servicio.importe ? `- $${servicio.importe}` : ''}
             </label>
         </div>
     `).join('');
-    
-}
-
-function createBasicService() {
-    const container = document.getElementById('serviciosList');
-    if (!container) {
-        console.error('Element serviciosList not found');
-        return;
-    }
-    
-    container.innerHTML = `
-        <div class="servicio-item">
-            <input type="checkbox" id="servicio_basic" 
-                   value="1" name="servicios" checked style="display: none;">
-            <label for="servicio_basic" style="color: #666; font-style: italic;">
-                Servicio básico de salón
-            </label>
-        </div>
-        <small style="color: #888; display: block; margin-top: 8px;">
-            * Servicio básico de reserva de salón
-        </small>
-    `;
-    
 }
 
 async function handleCreateReserva(e) {
@@ -389,12 +416,26 @@ async function handleCreateReserva(e) {
     const salonId = document.getElementById('salonSelect').value;
     const turnoId = document.getElementById('turnoSelect').value;
     
+    const salonSeleccionado = salonesData.find(s => s.salon_id == salonId);
+    const importeSalon = salonSeleccionado ? parseFloat(salonSeleccionado.importe) : 0;
+
+    let importeServicios = 0;
     const serviciosSeleccionados = Array.from(
-        document.querySelectorAll('input[name="servicios"]:checked')
-    ).map(checkbox => ({
-        servicio_id: parseInt(checkbox.value),
-        importe: 0 
-    }));
+        document.querySelectorAll('input[name="serviciosList_servicios"]:checked') 
+    ).map(checkbox => {
+        const servicioId = parseInt(checkbox.value);
+        
+        const servicioSeleccionado = serviciosData.find(s => s.servicio_id == servicioId);
+        const importeServicio = servicioSeleccionado ? parseFloat(servicioSeleccionado.importe) : 0;
+        importeServicios += importeServicio;
+        
+        return {
+            servicio_id: servicioId,
+            importe: importeServicio 
+        };
+    });
+
+    const importeTotal = importeSalon + importeServicios;
     
     if (!fechaReserva || !salonId || !turnoId) {
         showError('reservaError', 'Por favor complete todos los campos obligatorios');
@@ -515,4 +556,197 @@ function formatDate(dateString) {
     });
 }
 
+function formatDateForInput(dateString) {
+    const date = new Date(dateString);
+    return date.toISOString().split('T')[0];
+}
+
 window.switchTab = switchTab;
+
+async function handleReservaActions(e) {
+    const target = e.target;
+    
+    if (target.classList.contains('btn-delete')) {
+        const reserva_id = target.dataset.id;
+        if (confirm(`¿Estás seguro de que deseas eliminar la reserva #${reserva_id}?`)) {
+            showLoading(true);
+            try {
+                const response = await apiRequest(`/reservas/${reserva_id}`, 'DELETE');
+                if (response.estado) {
+                    alert('Reserva eliminada (borrado lógico) exitosamente.');
+                    loadReservas();
+                } else {
+                    alert('Error al eliminar la reserva: ' + response.mensaje);
+                }
+            } catch (error) {
+                console.error('Error en DELETE /reservas:', error);
+                alert('Error de conexión al eliminar.');
+            }
+            showLoading(false);
+        }
+    }
+    
+    if (target.classList.contains('btn-edit')) {
+        const reserva_id = target.dataset.id;
+        openEditModal(reserva_id);
+    }
+}
+
+async function handleGenerarPDF() {
+    showLoading(true);
+    console.log('Generando reporte PDF...');
+    
+    try {
+        const blob = await apiFileRequest('/reservas/informe?formato=pdf');
+        
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = 'reporte_reservas.pdf';
+        
+        document.body.appendChild(a);
+        a.click();
+        
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+
+    } catch (error) {
+        console.error('Error generando el PDF:', error);
+        alert('Error al generar el reporte PDF.');
+    }
+    
+    showLoading(false);
+}
+
+async function apiFileRequest(endpoint) {
+    const config = {
+        method: 'GET',
+        headers: {}
+    };
+    
+    if (authToken) {
+        config.headers['Authorization'] = `Bearer ${authToken}`;
+    }
+    
+    const response = await fetch(`${API_BASE}${endpoint}`, config);
+    
+    if (response.status === 401) {
+        handleLogout();
+        throw new Error('No autorizado');
+    }
+
+    if (!response.ok) {
+        throw new Error(`Error del servidor: ${response.statusText}`);
+    }
+    
+    return await response.blob();
+}
+
+
+async function openEditModal(reserva_id) {
+    const modal = document.getElementById('editModalOverlay');
+    modal.classList.add('active');
+    showLoading(true);
+    
+    hideError('editReservaError');
+    hideSuccess('editReservaSuccess');
+
+    try {
+        const response = await apiRequest(`/reservas/${reserva_id}`);
+        if (!response.estado) {
+            showError('editReservaError', 'No se pudieron cargar los datos de la reserva.');
+            showLoading(false);
+            return;
+        }
+
+        const reserva = response.reserva;
+
+        document.getElementById('editReservaId').value = reserva.reserva_id;
+        document.getElementById('editReservaForm').dataset.usuarioId = reserva.usuario_id; 
+
+        document.getElementById('editFechaReserva').value = formatDateForInput(reserva.fecha_reserva);
+        
+        populateSelect('editSalonSelect', salonesData, 'salon_id', 'titulo');
+        document.getElementById('editSalonSelect').value = reserva.salon_id;
+
+        populateSelect('editTurnoSelect', turnosData, 'turno_id', 'descripcion');
+        document.getElementById('editTurnoSelect').value = reserva.turno_id;
+        
+        populateServicesList(serviciosData, 'editServiciosList');
+        const serviciosReservaIds = reserva.servicios.map(s => s.servicio_id);
+        
+        document.querySelectorAll('input[name="editServiciosList_servicios"]').forEach(checkbox => {
+            checkbox.checked = serviciosReservaIds.includes(parseInt(checkbox.value));
+        });
+
+    } catch (error) {
+        console.error('Error al abrir el modal de edición:', error);
+        showError('editReservaError', 'Error de conexión al cargar la reserva.');
+    }
+    
+    showLoading(false);
+}
+
+
+async function handleEditReserva(e) {
+    e.preventDefault();
+    showLoading(true);
+    hideError('editReservaError');
+    hideSuccess('editReservaSuccess');
+
+    const reserva_id = document.getElementById('editReservaId').value;
+    const usuario_id = document.getElementById('editReservaForm').dataset.usuarioId; 
+
+    const fechaReserva = document.getElementById('editFechaReserva').value;
+    const salonId = document.getElementById('editSalonSelect').value;
+    const turnoId = document.getElementById('editTurnoSelect').value;
+    
+    const salonSeleccionado = salonesData.find(s => s.salon_id == salonId);
+    const importeSalon = salonSeleccionado ? parseFloat(salonSeleccionado.importe) : 0;
+
+    let importeServicios = 0;
+    const serviciosSeleccionados = Array.from(
+        document.querySelectorAll('input[name="editServiciosList_servicios"]:checked')
+    ).map(checkbox => {
+        const servicioId = parseInt(checkbox.value);
+        const servicioSeleccionado = serviciosData.find(s => s.servicio_id == servicioId);
+        const importeServicio = servicioSeleccionado ? parseFloat(servicioSeleccionado.importe) : 0;
+        importeServicios += importeServicio;
+        return {
+            servicio_id: servicioId,
+            importe: importeServicio 
+        };
+    });
+
+    const importeTotal = importeSalon + importeServicios;
+
+    const reservaData = {
+        fecha_reserva: fechaReserva,
+        salon_id: parseInt(salonId),
+        usuario_id: parseInt(usuario_id), 
+        turno_id: parseInt(turnoId),
+        servicios: serviciosSeleccionados
+    };
+
+    try {
+        const response = await apiRequest(`/reservas/${reserva_id}`, 'PUT', reservaData);
+
+        if (response.estado) {
+            showSuccess('editReservaSuccess', '¡Reserva actualizada exitosamente!');
+            
+            await loadDashboardData(); 
+            await loadReservas(); 
+    
+            document.getElementById('editModalOverlay').classList.remove('active');
+
+        } else {
+            showError('editReservaError', response.mensaje || 'Error al actualizar la reserva');
+        }
+    } catch (error) {
+        console.error('Error en PUT /reservas:', error);
+        showError('editReservaError', 'Error de conexión con el servidor.');
+    }
+    
+    showLoading(false);
+}

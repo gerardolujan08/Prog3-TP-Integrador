@@ -142,13 +142,26 @@ export default class Reservas {
         try {
             const sqlReserva = `
                 UPDATE reservas SET 
-                fecha_reserva = ?, salon_id = ?, usuario_id = ?, turno_id = ?, 
-                importe_total = ?, importe_salon = ?, foto_cumpleaniero = ?, tematica = ?
-                WHERE reserva_id = ?`;
+                    fecha_reserva = ?, 
+                    salon_id = ?, 
+                    usuario_id = ?, 
+                    turno_id = ?, 
+                    importe_salon = ?, 
+                    importe_total = ?, 
+                    foto_cumpleaniero = ?, 
+                    tematica = ?
+                WHERE reserva_id = ?
+            `;
                 
             await conexion.execute(sqlReserva, [
-                fecha_reserva, salon_id, usuario_id, turno_id, 
-                importe_total, importe_salon, foto_cumpleaniero, tematica,
+                fecha_reserva, 
+                salon_id, 
+                usuario_id, 
+                turno_id,
+                importe_salon,  
+                importe_total,  
+                foto_cumpleaniero, 
+                tematica,
                 reserva_id
             ]);
 
@@ -188,27 +201,27 @@ export default class Reservas {
         return reserva;
     }
 
-    buscarDatosReporteCsv = async() => {
+    buscarDatosReporte = async() => {
         const sql = `
             SELECT
                 r.reserva_id,
                 DATE_FORMAT(r.fecha_reserva, '%d/%m/%Y') AS fecha_reserva,
-                s.titulo,
-                t.orden,
-                u.nombre_usuario,
+                s.titulo AS salon_titulo,
+                CONCAT(DATE_FORMAT(t.hora_desde, '%H:%i'), ' - ', DATE_FORMAT(t.hora_hasta, '%H:%i')) AS turno_completo,
+                u.nombre_usuario AS cliente_email,
                 r.importe_total,
-                CONCAT(DATE_FORMAT(t.hora_desde, '%H:%i'), ' - ', DATE_FORMAT(t.hora_hasta, '%H:%i')) AS turno,
-                COUNT(rs.servicio_id) AS total_servicios
+                GROUP_CONCAT(serv.descripcion SEPARATOR '; ') AS servicios_lista
             FROM
                 reservas r
             JOIN salones s ON r.salon_id = s.salon_id
             JOIN turnos t ON r.turno_id = t.turno_id
             JOIN usuarios u ON r.usuario_id = u.usuario_id
             LEFT JOIN reservas_servicios rs ON r.reserva_id = rs.reserva_id
+            LEFT JOIN servicios serv ON rs.servicio_id = serv.servicio_id
             WHERE
                 r.activo = 1
             GROUP BY
-                r.reserva_id, s.titulo, t.orden, t.hora_desde, t.hora_hasta, u.nombre_usuario
+                r.reserva_id, s.titulo, t.hora_desde, t.hora_hasta, u.nombre_usuario, r.importe_total
             ORDER BY
                 r.reserva_id ASC
         `;

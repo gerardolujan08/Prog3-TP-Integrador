@@ -106,10 +106,16 @@
             <div class="reservas-container">
                 <div class="section-header">
                     <h2><i class="fas fa-calendar-check"></i> Mis Reservas</h2>
-                    <button id="refreshReservas" class="btn-refresh">
-                        <i class="fas fa-sync-alt"></i> Actualizar
-                    </button>
-                </div>
+                    
+                    <div class="button-group">
+                        <button id="refreshReservas" class="btn-refresh">
+                            <i class="fas fa-sync-alt"></i> Actualizar
+                        </button>
+                        <button id="btnGenerarPDF" class="btn-refresh" style="background-color: #28a745; border-color: #28a745; display: none;">
+                            <i class="fas fa-file-pdf"></i> Generar PDF
+                        </button>
+                    </div>
+                    </div>
 
                 <div id="reservasList" class="reservas-list"></div>
 
@@ -168,6 +174,51 @@
     <div id="loadingOverlay" class="loading-overlay">
         <div class="spinner"></div>
         <p>Cargando...</p>
+    </div>
+
+    <div id="editModalOverlay" class="modal-overlay">
+        <div class="modal-card">
+            <h2><i class="fas fa-edit"></i> Editar Reserva</h2>
+            
+            <form id="editReservaForm" class="reserva-form">
+                <input type="hidden" id="editReservaId">
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label><i class="fas fa-calendar"></i> Fecha de Reserva *</label>
+                        <input type="date" id="editFechaReserva" required>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-map-marker-alt"></i> Salón *</label>
+                        <select id="editSalonSelect" required>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label><i class="fas fa-clock"></i> Turno *</label>
+                        <select id="editTurnoSelect" required>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-concierge-bell"></i> Servicios Adicionales</label>
+                        <div id="editServiciosList" class="servicios-list">
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary btn-large">
+                    <i class="fas fa-save"></i> Guardar Cambios
+                </button>
+                <button type="button" id="closeEditModal" class="btn-secondary">
+                    Cancelar
+                </button>
+            </form>
+
+            <div id="editReservaSuccess" class="success-message"></div>
+            <div id="editReservaError" class="error-message"></div>
+        </div>
     </div>
 
     <script src="app.js"></script>

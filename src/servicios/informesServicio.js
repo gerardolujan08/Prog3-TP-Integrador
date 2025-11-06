@@ -19,9 +19,13 @@ export default class InformeServicio {
             const csvWriter = createObjectCsvWriter({
                 path: ruta,
                 header: [
-                    {id: 'fecha_reserva', title: 'Fecha reserva'},
-                    {id: 'titulo', title: 'Título'},
-                    {id: 'orden', title: 'Orden'}
+                    {id: 'reserva_id', title: 'ID Reserva'},
+                    {id: 'fecha_reserva', title: 'Fecha Reserva'},
+                    {id: 'salon_titulo', title: 'Salon'},
+                    {id: 'turno_completo', title: 'Turno'},
+                    {id: 'cliente_email', title: 'Cliente'},
+                    {id: 'importe_total', title: 'Importe Total'},
+                    {id: 'servicios_lista', title: 'Servicios'}
                 ]
             });
             
@@ -65,8 +69,7 @@ export default class InformeServicio {
             let page = await browser.newPage();
             await page.setContent(htmlFinal);
 
-            const buffer = await page.pdf({
-                path: 'reservas.pdf', 
+            const buffer = await page.pdf({ 
                 format: 'A4', 
                 printBackground: true
             });
@@ -82,4 +85,3 @@ export default class InformeServicio {
     }
 
 }
-
