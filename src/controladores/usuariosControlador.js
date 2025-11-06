@@ -120,4 +120,41 @@ export default class UsuariosControlador{
             });
         }
     }
+
+    subirFoto = async (req, res) => {
+        try {
+            if (!req.file) {
+                return res.status(400).json({
+                    estado: false,
+                    mensaje: 'No se subió ningún archivo o el formato no es válido.'
+                });
+            }
+
+            const usuario_id = req.params.usuario_id;
+
+            const rutaFoto = req.file.path;
+            
+            const actualizado = await this.usuariosServicio.actualizarFoto(usuario_id, rutaFoto);
+
+            if (!actualizado) {
+                return res.status(404).json({
+                    estado: false,
+                    mensaje: 'Usuario no encontrado.'
+                });
+            }
+
+            res.status(200).json({
+                estado: true,
+                mensaje: 'Foto de perfil actualizada exitosamente.',
+                ruta: rutaFoto
+            });
+
+        } catch (err) {
+            console.log('Error en POST /usuarios/:usuario_id/foto', err);
+            res.status(500).json({
+                estado: false,
+                mensaje: 'Error interno del servidor.'
+            });
+        }
+    }
 }

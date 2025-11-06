@@ -1,5 +1,4 @@
 import { conexion } from "./conexion.js";
-
 export default class Usuarios {
 
     buscarTodos = async(user) => {
@@ -63,4 +62,11 @@ export default class Usuarios {
         return { "mensaje": "eliminado correctamente" };
     }
     
+    actualizarFoto = async(usuario_id, rutaFoto) => {
+        const sql = 'UPDATE usuarios SET foto = ? WHERE usuario_id = ?';
+        
+        const [resultado] = await conexion.execute(sql, [rutaFoto, usuario_id]);
+        
+        return resultado.affectedRows;
+    }
 }

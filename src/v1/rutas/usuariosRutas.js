@@ -3,6 +3,7 @@ import UsuariosControlador from '../../controladores/usuariosControlador.js';
 import autorizarUsuarios from "../../middlewares/autorizarUsuarios.js";
 import { check } from 'express-validator';
 import { validarCampos } from '../../middlewares/validarCampos.js';
+import upload from '../../middlewares/uploadUsuario.js'; 
 
 const usuariosControlador = new UsuariosControlador();
 const router = express.Router();
@@ -23,7 +24,6 @@ router.post(
     check('tipo_usuario', 'El tipo de usuario es obligatorio.').notEmpty(),
     check('tipo_usuario', 'El tipo de usuario debe ser un número entre 1 y 3.').isInt({ min: 1, max: 3 }),
     check('celular').optional({ nullable: true }).isNumeric(),
-    check('foto').optional({ nullable: true }).isString().withMessage('La foto debe ser texto.'),
     validarCampos
   ],
   (req, res) => usuariosControlador.crear(req, res)
@@ -41,10 +41,18 @@ router.put(
     check('tipo_usuario', 'El tipo de usuario es obligatorio.').notEmpty(),
     check('tipo_usuario', 'El tipo de usuario debe ser un número entre 1 y 3.').isInt({ min: 1, max: 3 }),
     check('celular').optional({ nullable: true }).isString().withMessage('El celular debe ser texto.'),
-    check('foto').optional({ nullable: true }).isString().withMessage('La foto debe ser texto.'),
     validarCampos
   ],
   (req, res) => usuariosControlador.actualizar(req, res)
+);
+
+router.post(
+  '/:usuario_id/foto',
+  [
+    autorizarUsuarios([1, 2]),
+    upload.single('foto')
+  ],
+  (req, res) => usuariosControlador.subirFoto(req, res)
 );
 
 router.delete('/:usuario_id', autorizarUsuarios([1]), (req, res) => usuariosControlador.eliminar(req, res));

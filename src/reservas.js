@@ -2,6 +2,10 @@ import express from 'express';
 import passport from 'passport';
 import morgan from 'morgan';
 import swaggerUi from 'swagger-ui-express';
+import cors from 'cors';
+
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 import { router as v1SalonesRutas} from './v1/rutas/salonesRutas.js'
 import { router as v1ServiciosRutas} from './v1/rutas/serviciosRutas.js'
@@ -14,12 +18,18 @@ import { router as v1EstadisticasRutas } from './v1/rutas/estadisticasRutas.js';
 import { estrategia, validacion } from './config/passport.js';
 import swaggerDocs from './config/swaggerConfig.js';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const app = express();
+app.use(cors());
 app.use(express.json());
 passport.use(estrategia)
 passport.use(validacion)
 app.use(passport.initialize())
 app.use(morgan('combined'))
+
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use('/api/v1/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 

@@ -1,5 +1,4 @@
 import { conexion } from "./conexion.js";
-
 export default class Reservas {
 
     buscarTodos = async() => {
@@ -151,5 +150,13 @@ export default class Reservas {
         
         const [result] = await conexion.query(sql);
         return result;
+    }
+
+    actualizarFotoCumpleaniero = async (reserva_id, rutaFoto) => {
+        const sql = 'UPDATE reservas SET foto_cumpleaniero = ? WHERE reserva_id = ? AND activo = 1';
+        
+        const [resultado] = await conexion.execute(sql, [rutaFoto, reserva_id]);
+        
+        return resultado.affectedRows;
     }
 }
