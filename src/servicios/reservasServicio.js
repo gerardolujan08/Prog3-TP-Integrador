@@ -54,7 +54,7 @@ export default class ReservasServicio {
         await this.reservas_servicios.crear(result.reserva_id, servicios);     
         
         try {
-            const datosParaNotificacion = await this.reservas.datosParaNotificacion(result.reserva_id); // (También acá)
+            const datosParaNotificacion = await this.reservas.datosParaNotificacion(result.reserva_id);
         
             await this.notificaciones_servicios.enviarCorreo(datosParaNotificacion);
         } catch (notificationError) {           

@@ -40,7 +40,6 @@ export default class InformeServicio {
             
             const template = handlebars.compile(plantillaHtml);
             
-            // Generar fecha actual formateada
             const fechaActual = new Date();
             const fechaFormateada = fechaActual.toLocaleDateString('es-ES', {
                 year: 'numeric',

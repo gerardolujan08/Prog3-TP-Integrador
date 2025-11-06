@@ -1,6 +1,6 @@
 Sistema de Reservas (TP Prog3)
 
-Un API backend para un sistema de reservas de salones, hecho con Node.js, Express y MySQL.
+Un API backend para un sistema de reservas de salones.
 
 
 ===================

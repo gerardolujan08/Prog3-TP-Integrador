@@ -2,7 +2,6 @@ import {ExtractJwt, Strategy as JwtStrategy} from "passport-jwt";
 import {Strategy as LocalStrategy} from "passport-local";
 import UsuariosServicio from "../servicios/usuariosServicio.js";
 
-// Configuración de la estrategia de authenticación 
 export const estrategia = new LocalStrategy(
     {
         usernameField: 'nombre_usuario',
@@ -22,7 +21,6 @@ export const estrategia = new LocalStrategy(
     }
 )
 
-// Validación del token
 export const validacion = new JwtStrategy(
     {
         jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),

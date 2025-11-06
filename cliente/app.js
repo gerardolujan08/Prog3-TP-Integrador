@@ -143,7 +143,7 @@ async function loadDashboardData() {
             const stats = estadisticasResponse.estadisticas;
             
             document.getElementById('totalReservas').textContent = stats.total_reservas || 0;
-            document.getElementById('proximasReservas').textContent = stats.total_reservas || 0; // Simplificado
+            document.getElementById('proximasReservas').textContent = stats.total_reservas || 0;
             
             const salonesResponse = await apiRequest('/salones');
             if (salonesResponse.estado) {
@@ -268,7 +268,6 @@ async function loadFormData() {
     showLoading(true);
     
     try {
-        // Cargar salones (OBLIGATORIO)
         console.log('Solicitando salones...');
         const salonesResponse = await apiRequest('/salones');
         console.log('Respuesta de salones:', salonesResponse);
