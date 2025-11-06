@@ -1,6 +1,5 @@
 import ReservasServicio from "../servicios/reservasServicio.js";
 const formatosPermitidos = ['pdf', 'csv'];
-
 export default class ReservasControlador{
 
     constructor(){
@@ -145,18 +144,13 @@ export default class ReservasControlador{
                 });
             }
 
-            // generar informe
             const {buffer, path, headers} = await this.reservasServicio.generarInforme(formato);
 
-            // setear la cabecera de respuesta
             res.set(headers);
 
             if (formato === 'pdf') {
-                // envía el pdf
                 res.status(200).end(buffer);
             } else if (formato === 'csv') {
-                // respuesta al cliente
-                // envío el path
                 res.status(200).download(path, (err) => {
                     if (err) {
                         console.error('Error al descargar el archivo CSV:', err);
@@ -176,5 +170,40 @@ export default class ReservasControlador{
             });
         }
     }
-}
 
+    subirFotoCumpleaniero = async (req, res) => {
+        try {
+            if (!req.file) {
+                return res.status(400).json({
+                    estado: false,
+                    mensaje: 'No se subió ningún archivo o el formato no es válido.'
+                });
+            }
+
+            const reserva_id = req.params.reserva_id;
+            const rutaFoto = req.file.path;
+
+            const actualizado = await this.reservasServicio.actualizarFotoCumpleaniero(reserva_id, rutaFoto);
+
+            if (!actualizado) {
+                return res.status(404).json({
+                    estado: false,
+                    mensaje: 'Reserva no encontrada.'
+                });
+            }
+
+            res.status(200).json({
+                estado: true,
+                mensaje: 'Foto de cumpleañero actualizada exitosamente.',
+                ruta: rutaFoto
+            });
+
+        } catch (err) {
+            console.log('Error en POST /reservas/:reserva_id/foto_cumpleaniero', err);
+            res.status(500).json({
+                estado: false,
+                mensaje: 'Error interno del servidor.'
+            });
+        }
+    }
+}
