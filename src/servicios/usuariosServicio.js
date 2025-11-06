@@ -28,7 +28,6 @@ export default class UsuariosServicio {
             return false;
         }
         
-        // Aca también iría la lógica de HASH si la contraseña se está actualizando
         await this.usuarios.actualizar(usuario_id, usuario)
         return true;
     }
@@ -41,5 +40,16 @@ export default class UsuariosServicio {
         }
         await this.usuarios.eliminar(usuario_id)
         return true;
+    }
+
+    actualizarFoto = async (usuario_id, rutaFoto) => {
+        const usuarioExiste = await this.usuarios.buscarPorId(usuario_id);
+        if(!usuarioExiste){
+            return false;
+        }
+
+        const filasAfectadas = await this.usuarios.actualizarFoto(usuario_id, rutaFoto);
+        
+        return filasAfectadas > 0;
     }
 }

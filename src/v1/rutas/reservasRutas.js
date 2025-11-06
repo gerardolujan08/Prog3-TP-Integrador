@@ -5,6 +5,8 @@ import { check } from 'express-validator';
 import { validarCampos } from '../../middlewares/validarCampos.js';
 import { dateRegex } from './turnosRutas.js';
 
+import upload from '../../middlewares/uploadReserva.js';
+
 const reservasControlador = new ReservasControlador();
 const router = express.Router();
 
@@ -58,6 +60,15 @@ router.put(
 
 router.delete('/:reserva_id', autorizarUsuarios([1]), (req, res) =>
   reservasControlador.eliminar(req, res)
+);
+
+router.post(
+  '/:reserva_id/foto_cumpleaniero',
+  [
+    autorizarUsuarios([1, 3]),
+    upload.single('foto_cumpleaniero')
+  ],
+  (req, res) => reservasControlador.subirFotoCumpleaniero(req, res)
 );
 
 export { router };

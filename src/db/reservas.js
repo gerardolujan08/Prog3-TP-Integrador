@@ -1,5 +1,4 @@
 import { conexion } from "./conexion.js";
-
 export default class Reservas {
 
     buscarTodos = async() => {
@@ -124,16 +123,18 @@ export default class Reservas {
     }
 
     buscarDatosReporteCsv = async() => {
-        const sql = `
-            SELECT 
-                DATE_FORMAT(r.fecha_reserva, '%Y-%m-%d') as fecha_reserva,
-                CONCAT('Reserva #', r.reserva_id) as titulo,
-                r.reserva_id as orden
-            FROM reservas r
-            WHERE r.activo = 1
-            ORDER BY r.fecha_reserva DESC`;
+        const sql = 'CALL sp_datos_informe_reservas()';
+        const [resultado] = await conexion.execute(sql);
         
-        const [result] = await conexion.query(sql);
-        return result;
+        // Los stored procedures devuelven arrays anidados, tomamos el primer resultado
+        return resultado[0];
+    }
+
+    actualizarFotoCumpleaniero = async (reserva_id, rutaFoto) => {
+        const sql = 'UPDATE reservas SET foto_cumpleaniero = ? WHERE reserva_id = ? AND activo = 1';
+        
+        const [resultado] = await conexion.execute(sql, [rutaFoto, reserva_id]);
+        
+        return resultado.affectedRows;
     }
 }

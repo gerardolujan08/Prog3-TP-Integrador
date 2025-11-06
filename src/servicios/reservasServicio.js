@@ -1,8 +1,6 @@
 import Reservas from "../db/reservas.js";
 import ReservasServicios from "../db/reservas_servicios.js";
 import InformeServicio from "./informesServicio.js";
-import NotificacionesServicio from "./notificacionesServicio.js";
-
 export default class ReservasServicio {
 
     constructor(){
@@ -105,5 +103,16 @@ export default class ReservasServicio {
                 }
             };
         }
+    }
+
+    actualizarFotoCumpleaniero = async (reserva_id, rutaFoto) => {
+        const reservaExiste = await this.reservas.buscarPorId(reserva_id);
+        if(!reservaExiste){
+            return false;
+        }
+
+        const filasAfectadas = await this.reservas.actualizarFotoCumpleaniero(reserva_id, rutaFoto);
+        
+        return filasAfectadas > 0;
     }
 }
