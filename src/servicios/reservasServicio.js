@@ -1,6 +1,8 @@
 import Reservas from "../db/reservas.js";
 import ReservasServicios from "../db/reservas_servicios.js";
 import InformeServicio from "./informesServicio.js";
+import NotificacionesServicio from "./notificacionesServicio.js"; 
+
 export default class ReservasServicio {
 
     constructor(){
@@ -41,9 +43,9 @@ export default class ReservasServicio {
             tematica,
             importe_salon,
             importe_total
-        }    
+        }   
 
-        const result = await this.reserva.crear(nuevaReserva);
+        const result = await this.reservas.crear(nuevaReserva);
 
         if (!result) {
             return null;
@@ -52,14 +54,14 @@ export default class ReservasServicio {
         await this.reservas_servicios.crear(result.reserva_id, servicios);     
         
         try {
-            const datosParaNotificacion = await this.reserva.datosParaNotificacion(result.reserva_id);
+            const datosParaNotificacion = await this.reservas.datosParaNotificacion(result.reserva_id); // (También acá)
         
-            await this.notificacioes_servicios.enviarCorreo(datosParaNotificacion);
-        } catch (notificationError) {            
+            await this.notificaciones_servicios.enviarCorreo(datosParaNotificacion);
+        } catch (notificationError) {           
             console.log('Advertencia: No se pudo enviar el correo.');
         }
 
-        return this.reserva.buscarPorId(result.reserva_id);
+        return this.reservas.buscarPorId(result.reserva_id);
     }
 
     actualizar = async (reserva_id, reserva) => {

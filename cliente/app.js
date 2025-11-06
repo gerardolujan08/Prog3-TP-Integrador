@@ -65,7 +65,6 @@ async function handleLogin(e) {
         if (data.estado && data.token) {
             authToken = data.token;
             
-            // Decodificar el token para obtener info del usuario
             const tokenPayload = JSON.parse(atob(data.token.split('.')[1]));
             currentUser = {
                 usuario_id: tokenPayload.usuario_id,
@@ -97,7 +96,6 @@ function handleLogout() {
     showLoginScreen();
 }
 
-// 🖥️ NAVEGACIÓN DE PANTALLAS
 function showLoginScreen() {
     document.getElementById('loginScreen').classList.add('active');
     document.getElementById('mainScreen').classList.remove('active');
@@ -107,28 +105,23 @@ function showMainScreen() {
     document.getElementById('loginScreen').classList.remove('active');
     document.getElementById('mainScreen').classList.add('active');
     
-    // Actualizar nombre de usuario
     document.getElementById('userName').textContent = currentUser.usuario;
     
-    // Cargar datos iniciales
     loadDashboardData();
     loadInitialData();
 }
 
 function switchTab(tabName) {
-    // Actualizar botones
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.classList.remove('active');
     });
     document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
     
-    // Actualizar contenido
     document.querySelectorAll('.tab-content').forEach(content => {
         content.classList.remove('active');
     });
     document.getElementById(tabName).classList.add('active');
     
-    // Cargar datos específicos del tab
     switch(tabName) {
         case 'dashboard':
             loadDashboardData();
@@ -155,7 +148,7 @@ async function loadDashboardData() {
             const salonesResponse = await apiRequest('/salones');
             if (salonesResponse.estado) {
                 const salones = salonesResponse.salones || [];
-                document.getElementById('canchasDisponibles').textContent = salones.length;
+                document.getElementById('salonesDisponibles').textContent = salones.length;
             }
             
             console.log('Estadísticas cargadas desde stored procedure:', stats);
@@ -174,7 +167,6 @@ async function loadDashboardDataFallback() {
     try {
         console.log('Usando método de respaldo para cargar dashboard');
         
-        // Cargar estadísticas básicas (método original)
         const reservasResponse = await apiRequest('/reservas');
         const salonesResponse = await apiRequest('/salones');
         
@@ -190,7 +182,7 @@ async function loadDashboardDataFallback() {
         
         if (salonesResponse.estado) {
             const salones = salonesResponse.salones || [];
-            document.getElementById('canchasDisponibles').textContent = salones.length;
+            document.getElementById('salonesDisponibles').textContent = salones.length;
         }
         
     } catch (error) {
@@ -243,7 +235,8 @@ function displayReservas(reservas) {
                     <span>${formatDate(reserva.fecha_reserva)}</span>
                 </div>
                 <div class="detail-item">
-                    <i class="fas fa-home"></i>
+                    <!-- Icono y Texto Corregidos -->
+                    <i class="fas fa-birthday-cake"></i>
                     <span>${reserva.salon_nombre || 'Salón'}</span>
                 </div>
                 <div class="detail-item">
@@ -265,7 +258,6 @@ function showNoReservas() {
 }
 
 async function loadFormData() {
-    // Verificar que el usuario esté autenticado
     if (!authToken) {
         console.warn('Usuario no autenticado, no se pueden cargar los datos del formulario');
         showError('reservaError', 'Debe iniciar sesión para acceder al formulario');
@@ -289,7 +281,6 @@ async function loadFormData() {
             return;
         }
         
-        // Cargar turnos (OBLIGATORIO)
         console.log('Solicitando turnos...');
         const turnosResponse = await apiRequest('/turnos');
         console.log('Respuesta de turnos:', turnosResponse);
@@ -302,7 +293,6 @@ async function loadFormData() {
             return;
         }
         
-        // Cargar servicios (REQUERIDO por el backend, pero crear uno básico si no hay)
         console.log('Solicitando servicios...');
         const serviciosResponse = await apiRequest('/servicios');
         console.log('Respuesta de servicios:', serviciosResponse);
@@ -311,16 +301,13 @@ async function loadFormData() {
             if (serviciosResponse.servicios.length > 0) {
                 populateServicesList(serviciosResponse.servicios);
             } else {
-                // Si no hay servicios, crear un servicio básico invisible
                 createBasicService();
             }
         } else {
             console.warn('No se pudieron cargar los servicios:', serviciosResponse);
-            // Crear servicio básico para cumplir requisito del backend
             createBasicService();
         }
         
-        // Establecer fecha mínima (hoy)
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('fechaReserva').min = today;
         
@@ -341,26 +328,21 @@ function populateSelect(selectId, items, valueField, textField) {
         return;
     }
     
-    // Guardar la opción por defecto
     const defaultOption = select.querySelector('option[value=""]');
     const defaultText = defaultOption ? defaultOption.textContent : 'Seleccionar...';
     
-    // Limpiar todas las opciones
     select.innerHTML = '';
     
-    // Recrear opción por defecto
     const newDefaultOption = document.createElement('option');
     newDefaultOption.value = '';
     newDefaultOption.textContent = defaultText;
     select.appendChild(newDefaultOption);
     
-    // Verificar que items sea un array
     if (!Array.isArray(items)) {
         console.warn(`Items for ${selectId} is not an array:`, items);
         return;
     }
     
-    // Agregar opciones
     items.forEach(item => {
         const option = document.createElement('option');
         option.value = item[valueField];
@@ -408,16 +390,17 @@ function createBasicService() {
         return;
     }
     
-    // Crear un servicio básico de "Reserva estándar" que estará siempre seleccionado
     container.innerHTML = `
         <div class="servicio-item">
             <input type="checkbox" id="servicio_basic" 
                    value="1" name="servicios" checked style="display: none;">
+            <!-- Texto Corregido -->
             <label for="servicio_basic" style="color: #666; font-style: italic;">
-                Reserva estándar incluida
+                Servicio básico de salón
             </label>
         </div>
         <small style="color: #888; display: block; margin-top: 8px;">
+            <!-- Texto Corregido -->
             * Servicio básico de reserva de salón
         </small>
     `;
@@ -431,12 +414,11 @@ async function handleCreateReserva(e) {
     const salonId = document.getElementById('salonSelect').value;
     const turnoId = document.getElementById('turnoSelect').value;
     
-    // Obtener servicios seleccionados
     const serviciosSeleccionados = Array.from(
         document.querySelectorAll('input[name="servicios"]:checked')
     ).map(checkbox => ({
         servicio_id: parseInt(checkbox.value),
-        importe: 0 // Por defecto, debería venir de la BD
+        importe: 0 
     }));
     
     if (!fechaReserva || !salonId || !turnoId) {
@@ -468,10 +450,8 @@ async function handleCreateReserva(e) {
             showSuccess('reservaSuccess', '¡Reserva creada exitosamente!');
             document.getElementById('reservaForm').reset();
             
-            // Actualizar dashboard
             loadDashboardData();
             
-            // Cambiar a tab de reservas después de 2 segundos
             setTimeout(() => {
                 switchTab('reservas');
             }, 2000);
@@ -505,7 +485,6 @@ async function apiRequest(endpoint, method = 'GET', body = null) {
     const response = await fetch(`${API_BASE}${endpoint}`, config);
     
     if (response.status === 401) {
-        // Token expirado o inválido
         handleLogout();
         return;
     }
@@ -514,9 +493,7 @@ async function apiRequest(endpoint, method = 'GET', body = null) {
 }
 
 async function loadInitialData() {
-    // Cargar datos iniciales necesarios para toda la app
     try {
-        // Solo pre-cargar datos básicos del dashboard
         console.log('Datos iniciales cargados correctamente');
     } catch (error) {
         console.error('Error cargando datos iniciales:', error);
@@ -563,5 +540,4 @@ function formatDate(dateString) {
     });
 }
 
-// 🌍 FUNCIONES GLOBALES
 window.switchTab = switchTab;

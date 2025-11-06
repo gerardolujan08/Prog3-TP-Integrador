@@ -1,4 +1,3 @@
-/* Estilos Generales */
 * {
     margin: 0;
     padding: 0;
@@ -20,7 +19,6 @@ body {
     display: block;
 }
 
-/* Pantalla de Login */
 .login-container {
     display: flex;
     justify-content: center;
@@ -39,7 +37,7 @@ body {
 }
 
 .login-card h1 {
-    color: #333;
+    color: #667eea;
     margin-bottom: 10px;
     font-size: 24px;
 }
@@ -80,7 +78,7 @@ body {
 .btn-primary {
     width: 100%;
     padding: 12px;
-    background-color: #007bff;
+    background-color: #667eea;
     color: white;
     border: none;
     font-size: 14px;
@@ -89,7 +87,7 @@ body {
 }
 
 .btn-primary:hover {
-    background-color: #0056b3;
+    background-color: #5a67d8;
 }
 
 .btn-large {
@@ -140,7 +138,6 @@ body {
     background: #c82333;
 }
 
-/* Navegación */
 .nav-tabs {
     background: #f8f9fa;
     padding: 10px 0;
@@ -160,16 +157,15 @@ body {
 }
 
 .tab-btn.active {
-    background: #007bff;
+    background: #667eea;
     color: white;
-    border-color: #007bff;
+    border-color: #667eea;
 }
 
 .tab-btn:hover:not(.active) {
     background: #e9ecef;
 }
 
-/* 📄 CONTENIDO DE TABS */
 .tab-content {
     display: none;
     max-width: 1200px;
@@ -181,7 +177,6 @@ body {
     display: block;
 }
 
-/* Dashboard */
 .dashboard-container h2 {
     color: #333;
     margin-bottom: 20px;
@@ -239,17 +234,16 @@ body {
 .action-btn {
     padding: 10px 20px;
     margin: 0 5px 10px 0;
-    background: #007bff;
+    background: #667eea;
     color: white;
     border: none;
     cursor: pointer;
 }
 
 .action-btn:hover {
-    background: #0056b3;
+    background: #5a67d8;
 }
 
-/* Reservas */
 .reservas-container h2 {
     color: #333;
     margin-bottom: 20px;
@@ -403,7 +397,6 @@ body {
     width: auto;
 }
 
-/* Mensajes */
 .error-message {
     color: #dc3545;
     background: #f8d7da;
@@ -455,7 +448,7 @@ body {
     width: 40px;
     height: 40px;
     border: 3px solid #ccc;
-    border-top: 3px solid #007bff;
+    border-top: 3px solid #667eea;
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
