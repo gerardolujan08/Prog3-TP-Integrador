@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Reservas - Casa de Cumpleaños</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- 🔐 PANTALLA DE LOGIN -->
+    <div id="loginScreen" class="screen active">
+        <div class="login-container">
+            <div class="login-card">
+                <h1><i class="fas fa-birthday-cake"></i> Casa de Cumpleaños</h1>
+                <h2>Iniciar Sesión</h2>
+                
+                <form id="loginForm">
+                    <div class="input-group">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" id="emailLogin" placeholder="Correo electrónico" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="passwordLogin" placeholder="Contraseña" required>
+                    </div>
+                    
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+                    </button>
+                </form>
+                
+                <div id="loginError" class="error-message"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🏠 PANTALLA PRINCIPAL -->
+    <div id="mainScreen" class="screen">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1><i class="fas fa-birthday-cake"></i> Sistema de Reservas</h1>
+                <div class="user-info">
+                    <span id="userName">Usuario</span>
+                    <button id="logoutBtn" class="btn-logout">
+                        <i class="fas fa-sign-out-alt"></i> Salir
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navegación -->
+        <nav class="nav-tabs">
+            <button class="tab-btn active" data-tab="dashboard">
+                <i class="fas fa-chart-dashboard"></i> Dashboard
+            </button>
+            <button class="tab-btn" data-tab="reservas">
+                <i class="fas fa-calendar-check"></i> Mis Reservas
+            </button>
+            <button class="tab-btn" data-tab="nueva-reserva">
+                <i class="fas fa-plus-circle"></i> Nueva Reserva
+            </button>
+        </nav>
+
+        <!-- 📊 TAB DASHBOARD -->
+        <div id="dashboard" class="tab-content active">
+            <div class="dashboard-container">
+                <h2><i class="fas fa-chart-bar"></i> Dashboard</h2>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <i class="fas fa-calendar-alt stat-icon"></i>
+                        <div class="stat-info">
+                            <h3 id="totalReservas">0</h3>
+                            <p>Total Reservas</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <i class="fas fa-clock stat-icon"></i>
+                        <div class="stat-info">
+                            <h3 id="proximasReservas">0</h3>
+                            <p>Próximas</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <i class="fas fa-building stat-icon"></i>
+                        <div class="stat-info">
+                            <h3 id="salonesDisponibles">0</h3>
+                            <p>Salones</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="quick-actions">
+                    <h3>Acciones Rápidas</h3>
+                    <button class="action-btn" onclick="switchTab('nueva-reserva')">
+                        <i class="fas fa-plus"></i> Nueva Reserva
+                    </button>
+                    <button class="action-btn" onclick="switchTab('reservas')">
+                        <i class="fas fa-list"></i> Ver Reservas
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 📅 TAB MIS RESERVAS -->
+        <div id="reservas" class="tab-content">
+            <div class="reservas-container">
+                <div class="section-header">
+                    <h2><i class="fas fa-calendar-check"></i> Mis Reservas</h2>
+                    <button id="refreshReservas" class="btn-refresh">
+                        <i class="fas fa-sync-alt"></i> Actualizar
+                    </button>
+                </div>
+                
+                <div id="reservasList" class="reservas-list">
+                    <!-- Las reservas se cargarán aquí -->
+                </div>
+                
+                <div id="noReservas" class="no-data">
+                    <i class="fas fa-calendar-times"></i>
+                    <p>No tienes reservas aún</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ➕ TAB NUEVA RESERVA -->
+        <div id="nueva-reserva" class="tab-content">
+            <div class="nueva-reserva-container">
+                <h2><i class="fas fa-plus-circle"></i> Nueva Reserva</h2>
+                
+                <form id="reservaForm" class="reserva-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label><i class="fas fa-calendar"></i> Fecha de Reserva</label>
+                            <input type="date" id="fechaReserva" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label><i class="fas fa-building"></i> Salón</label>
+                            <select id="salonSelect" required>
+                                <option value="">Seleccionar salón...</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label><i class="fas fa-clock"></i> Turno</label>
+                            <select id="turnoSelect" required>
+                                <option value="">Seleccionar turno...</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label><i class="fas fa-concierge-bell"></i> Servicios</label>
+                            <div id="serviciosList" class="servicios-list">
+                                <!-- Los servicios se cargarán aquí -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn-primary btn-large">
+                        <i class="fas fa-save"></i> Crear Reserva
+                    </button>
+                </form>
+                
+                <div id="reservaSuccess" class="success-message"></div>
+                <div id="reservaError" class="error-message"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🔄 LOADING OVERLAY -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <p>Cargando...</p>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
