@@ -3,3 +3,4 @@ node_modules/
 .env.*
 src/uploads/usuarios/*
 src/uploads/reservas/*
+*.log
