@@ -36,7 +36,7 @@ export default class ReservasControlador{
             const reserva = await this.reservasServicio.buscarPorId(reserva_id);
 
             if(!reserva){
-                return res.status(404).json({
+                return res.status(440).json({
                     estado: false,
                     mensaje: 'Reserva no encontrada.'
                 });
@@ -73,10 +73,10 @@ export default class ReservasControlador{
                 salon_id,
                 usuario_id,
                 turno_id,
-                foto_cumpleaniero, 
-                tematica,
-                importe_salon,
-                importe_total, 
+                foto_cumpleaniero: foto_cumpleaniero || null, 
+                tematica: tematica || null,
+                importe_salon: importe_salon || 0,
+                importe_total: importe_total || 0,
                 servicios
             };
 

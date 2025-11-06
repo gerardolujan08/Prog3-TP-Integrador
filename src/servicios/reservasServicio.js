@@ -40,10 +40,10 @@ export default class ReservasServicio {
             salon_id,
             usuario_id,
             turno_id,
-            foto_cumpleaniero, 
-            tematica,
-            importe_salon,
-            importe_total
+            foto_cumpleaniero: foto_cumpleaniero || null, 
+            tematica: tematica || null,
+            importe_salon: importe_salon || 0,
+            importe_total: importe_total || 0 
         }   
 
         const result = await this.reservas.crear(nuevaReserva);

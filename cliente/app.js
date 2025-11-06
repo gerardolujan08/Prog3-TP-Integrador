@@ -235,22 +235,22 @@ function displayReservas(reservas) {
                     <span>${formatDate(reserva.fecha_reserva)}</span>
                 </div>
                 <div class="detail-item">
-                    <!-- Icono y Texto Corregidos -->
                     <i class="fas fa-birthday-cake"></i>
-                    <span>${reserva.salon_nombre || 'Salón'}</span>
+                    <span>${reserva.salon || 'Salón'}</span>
                 </div>
                 <div class="detail-item">
                     <i class="fas fa-clock"></i>
-                    <span>${reserva.turno_descripcion || 'Turno'}</span>
+                    <span>${reserva.turno || 'Turno'}</span>
                 </div>
                 <div class="detail-item">
                     <i class="fas fa-concierge-bell"></i>
-                    <span>${reserva.servicios_count || 0} servicios</span>
+                    <span>${reserva.servicios} servicios</span>
                 </div>
             </div>
         </div>
     `).join('');
 }
+
 
 function showNoReservas() {
     document.getElementById('reservasList').style.display = 'none';
@@ -285,7 +285,11 @@ async function loadFormData() {
         console.log('Respuesta de turnos:', turnosResponse);
         
         if (turnosResponse && turnosResponse.estado && turnosResponse.turnos) {
-            populateSelect('turnoSelect', turnosResponse.turnos, 'turno_id', 'orden');
+            const turnosConDescripcion = turnosResponse.turnos.map(t => ({
+                ...t,
+                descripcion: `${t.hora_desde.substring(0, 5)} - ${t.hora_hasta.substring(0, 5)}`
+            }));
+            populateSelect('turnoSelect', turnosConDescripcion, 'turno_id', 'descripcion');
         } else {
             console.warn('No se pudieron cargar los turnos:', turnosResponse);
             showError('reservaError', 'No se pudieron cargar los turnos disponibles');
@@ -393,13 +397,11 @@ function createBasicService() {
         <div class="servicio-item">
             <input type="checkbox" id="servicio_basic" 
                    value="1" name="servicios" checked style="display: none;">
-            <!-- Texto Corregido -->
             <label for="servicio_basic" style="color: #666; font-style: italic;">
                 Servicio básico de salón
             </label>
         </div>
         <small style="color: #888; display: block; margin-top: 8px;">
-            <!-- Texto Corregido -->
             * Servicio básico de reserva de salón
         </small>
     `;
