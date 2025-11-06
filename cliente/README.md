@@ -1,93 +1,68 @@
-🥳 Cliente Web - Sistema de Reservas de Salones
+Sistema de Reservas (TP Prog3)
 
-Este proyecto es un cliente web (frontend) simple, desarrollado como un extra opcional para el Trabajo Práctico Integrador de Programación III. Su único propósito es consumir y mostrar los datos de la API REST de Salones de Fiestas (el proyecto principal del TP).
-
-⚠️ Dependencia Crítica: El Backend (API)
-
-### ✅ **Funcionalidades Implementadas:**
-- **🔐 Autenticación:** Login con JWT
-- **📊 Dashboard:** KPIs y estadísticas básicas
-- **📅 Mis Reservas:** Visualización de reservas del usuario
-- **➕ Nueva Reserva:** Formulario completo para crear reservas
-
-Es una aplicación "frontend" pura (solo HTML, CSS y JS) que necesita conectarse a la API para obtener datos e iniciar sesión.
-
-Debes tener tu API de Node.js corriendo para que este cliente pueda funcionar.
-
-✨ Características Principales
-
-Este cliente implementa las funcionalidades básicas del rol "Cliente" (tipo 3) y "Administrador" (tipo 1):
-
-🔐 Autenticación: Formulario de inicio de sesión que consume el endpoint /auth/login y guarda el JWT en localStorage.
-
-📊 Dashboard (Admin): Consume el endpoint /estadisticas (el que usa el Procedimiento Almacenado) para mostrar KPIs básicos.
-
-📅 Mis Reservas: Consume GET /reservas para listar las reservas del usuario.
-
-➕ Nueva Reserva: Un formulario completo que consume GET /salones, GET /turnos y GET /servicios para popular los selectores y luego POST /reservas para crear una nueva reserva.
-
-📱 Diseño Adaptativo: Una interfaz simple adaptada para uso en dispositivos móviles.
-
-🛠️ Stack Tecnológico
-
-HTML5 Semántico
-
-CSS3 (Puro, sin frameworks)
-
-JavaScript (ES6+)
-
-Fetch API (para la comunicación con el backend)
-
-Font Awesome (para la iconografía)
-
-🚀 Guía de Inicio Rápido (Cómo Probarlo)
-
-Sigue estos 3 pasos para correr el proyecto completo (Backend + Frontend).
-
-Paso 1: Iniciar el Backend (Tu API)
-
-Abre una terminal y navega a la carpeta de tu API.
-
-# Ejemplo de cómo navegar a la carpeta de la API (ajusta la ruta)
-cd ../Prog3-TP-Integrador
+Un API backend para un sistema de reservas de salones.
 
 
-Inicia el servidor de la API.
+===================
+Requisitos
+===================
+
+Para poder correr este proyecto, necesitás tener instalado:
+
+* Node.js: (Cualquier versión LTS v18+ va bien).
+* MySQL: (Podés usar XAMPP, Laragon, WAMP o MySQL Workbench).
+
+
+===================
+Instalación
+===================
+
+1. Cloná el repositorio o descargá el ZIP.
+2. Abrí una terminal en la carpeta del proyecto.
+3. Instalá las dependencias de Node:
+
+   npm install
+
+
+===================
+Configuración
+===================
+
+Este proyecto necesita conectarse a tu base de datos MySQL.
+
+1. Base de Datos:
+   * Asegurate de importar el archivo .sql (que te pasó el profe o que está en el repo) en tu base de datos. Esto va a crear todas las tablas (reservas, salones, turnos, etc.).
+
+2. Archivo de Entorno (.env):
+   * En la carpeta raíz del proyecto (al lado del package.json), creá un archivo nuevo y nombralo .env
+   * Copiá y pegá esto adentro, y cambiale los valores por los de tu conexión local:
+
+    # Puerto para el servidor
+    PORT=3000
+    
+    # Datos de la Base de Datos
+    DB_HOST=localhost
+    DB_USER=root
+    DB_PASSWORD=
+    DB_DATABASE=reservas
+    
+    # Secreto para JWT (token)
+    JWT_SECRET=un_secreto_muy_dificil
+
+
+   Ojo: Si tu usuario de MySQL no es 'root' o tiene contraseña, cambialo en DB_USER y DB_PASSWORD.
+
+
+===================
+Ejecución
+===================
+
+Una vez que está todo instalado y configurado:
+
+1. Corré el servidor en modo desarrollo (se reinicia solo con cada cambio):
 
 npm run dev
-# o npm start, o el comando que uses
 
+2. El servidor se va a iniciar en el puerto que pusiste en el .env (generalmente http://localhost:3000).
 
-¡VERIFICA EL PUERTO! Fíjate en la terminal si tu API corre en el puerto 3000 o 8080.
-
-Si tu API corre en el 8080, cámbialo:
-const API_BASE = 'http://localhost:8080/api/v1';
-
-Si tu API corre en el 3000:
-const API_BASE = 'http://localhost:3000/api/v1';
-
-Paso 2: Abrir el Cliente Web
-
-No necesitas "instalar" nada. Solo abre el index.html en un navegador.
-
-Opción A: Haz doble clic en el archivo index.html.
-
-Opción B: Si tienes live-server instalado en Node.js, úsalo desde la carpeta de este cliente.
-
-# (Desde la carpeta de este cliente)
-npx live-server
-
-
-Paso 3: Iniciar Sesión
-
-Abre tu administrador de base de datos (DBeaver, Workbench, etc.).
-
-Busca en tu tabla usuarios un usuario con el que quieras probar.
-
-En la página de login (que abriste en el Paso 2), usa las credenciales de ese usuario:
-
-Correo electrónico: El nombre_usuario de tu base de datos.
-
-Contraseña: La contraseña en texto plano (ej: "1234", "admin123") de ese usuario.
-
-¡Si la API está corriendo en el puerto correcto, podrás iniciar sesión y usar la aplicación!
+3. ¡Listo! Ya podés probar la API con Postman o conectar el frontend.

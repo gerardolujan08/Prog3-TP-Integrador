@@ -2,29 +2,95 @@ import { conexion } from "./conexion.js";
 export default class Reservas {
 
     buscarTodos = async() => {
-        const sql = 'SELECT * FROM reservas WHERE activo = 1';
+        const sql = `
+            SELECT
+                r.reserva_id,
+                r.fecha_reserva,
+                s.titulo AS salon,
+                CONCAT(DATE_FORMAT(t.hora_desde, '%H:%i'), ' - ', DATE_FORMAT(t.hora_hasta, '%H:%i')) AS turno,
+                COUNT(rs.servicio_id) AS servicios
+            FROM
+                reservas r
+            JOIN salones s ON r.salon_id = s.salon_id
+            JOIN turnos t ON r.turno_id = t.turno_id
+            LEFT JOIN reservas_servicios rs ON r.reserva_id = rs.reserva_id
+            WHERE
+                r.activo = 1
+            GROUP BY
+                r.reserva_id, s.titulo, t.hora_desde, t.hora_hasta
+            ORDER BY
+                r.reserva_id ASC
+        `;
         const [reservas] = await conexion.execute(sql);
         return reservas;
     }
 
     buscarPropias = async(usuario_id) => {
-        const sql = 'SELECT * FROM reservas WHERE activo = 1 AND usuario_id = ?';
+        const sql = `
+            SELECT
+                r.reserva_id,
+                r.fecha_reserva,
+                s.titulo AS salon,
+                CONCAT(DATE_FORMAT(t.hora_desde, '%H:%i'), ' - ', DATE_FORMAT(t.hora_hasta, '%H:%i')) AS turno,
+                COUNT(rs.servicio_id) AS servicios
+            FROM
+                reservas r
+            JOIN salones s ON r.salon_id = s.salon_id
+            JOIN turnos t ON r.turno_id = t.turno_id
+            LEFT JOIN reservas_servicios rs ON r.reserva_id = rs.reserva_id
+            WHERE
+                r.activo = 1 AND r.usuario_id = ?
+            GROUP BY
+                r.reserva_id, s.titulo, t.hora_desde, t.hora_hasta
+            ORDER BY
+                r.reserva_id ASC
+        `;
         const [reservas] = await conexion.query(sql, [usuario_id])
         return reservas
     }
 
     buscarPorId = async(reserva_id) => {
-        const sqlReserva = 'SELECT * FROM reservas WHERE activo = 1 AND reserva_id = ?';
-        const [reserva] = await conexion.execute(sqlReserva, [reserva_id]);
+        const sqlReserva = `
+            SELECT
+                r.*, 
+                s.titulo AS salon_nombre,
+                CONCAT(DATE_FORMAT(t.hora_desde, '%H:%i'), ' - ', DATE_FORMAT(t.hora_hasta, '%H:%i')) AS turno_nombre
+            FROM
+                reservas r
+            JOIN salones s ON r.salon_id = s.salon_id
+            JOIN turnos t ON r.turno_id = t.turno_id
+            WHERE
+                r.activo = 1 AND r.reserva_id = ?
+        `;
+        const [reservaRows] = await conexion.execute(sqlReserva, [reserva_id]);
 
-        if(reserva.length === 0){
+        if(reservaRows.length === 0){
             return null;
         }
 
-        return reserva[0];
+        const reserva = reservaRows[0];
+
+        const sqlServicios = `
+            SELECT
+                s.servicio_id,
+                s.descripcion, 
+                rs.importe
+            FROM
+                reservas_servicios rs
+            JOIN servicios s ON rs.servicio_id = s.servicio_id
+            WHERE
+                rs.reserva_id = ?
+        `;
+        
+        const [servicios] = await conexion.execute(sqlServicios, [reserva_id]);
+
+        reserva.servicios = servicios;
+
+        return reserva;
     }
 
     crear = async(reserva) => {
+        
         const { 
                 fecha_reserva,
                 salon_id,
@@ -126,7 +192,6 @@ export default class Reservas {
         const sql = 'CALL sp_datos_informe_reservas()';
         const [resultado] = await conexion.execute(sql);
         
-        // Los stored procedures devuelven arrays anidados, tomamos el primer resultado
         return resultado[0];
     }
 

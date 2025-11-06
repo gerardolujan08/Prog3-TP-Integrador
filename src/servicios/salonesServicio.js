@@ -1,6 +1,4 @@
 import Salones from "../db/salones.js";
-
-
 export default class SalonesServicio {
 
     constructor(){

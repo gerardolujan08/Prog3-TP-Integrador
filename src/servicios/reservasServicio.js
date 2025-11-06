@@ -39,10 +39,10 @@ export default class ReservasServicio {
             salon_id,
             usuario_id,
             turno_id,
-            foto_cumpleaniero, 
-            tematica,
-            importe_salon,
-            importe_total
+            foto_cumpleaniero: foto_cumpleaniero || null, 
+            tematica: tematica || null,
+            importe_salon: importe_salon || 0,
+            importe_total: importe_total || 0 
         }   
 
         const result = await this.reservas.crear(nuevaReserva);
@@ -54,7 +54,7 @@ export default class ReservasServicio {
         await this.reservas_servicios.crear(result.reserva_id, servicios);     
         
         try {
-            const datosParaNotificacion = await this.reservas.datosParaNotificacion(result.reserva_id); // (También acá)
+            const datosParaNotificacion = await this.reservas.datosParaNotificacion(result.reserva_id);
         
             await this.notificaciones_servicios.enviarCorreo(datosParaNotificacion);
         } catch (notificationError) {           
