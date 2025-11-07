@@ -14,7 +14,7 @@ export default class ReservasServicio {
     }
 
     buscarTodos = (usuario) => {
-        if(usuario.tipo_usuario === 1 || usuario.tipo_usuario === 3){
+        if(usuario.tipo_usuario === 1 || usuario.tipo_usuario === 2){
             return this.reservas.buscarTodos();
         } else {
             return this.reservas.buscarPropias(usuario.usuario_id);
@@ -77,22 +77,20 @@ export default class ReservasServicio {
         return this.reservas.buscarPorId(result.reserva_id);
     }
 
-    actualizar = async (reserva_id, reserva) => {
 
-        const existe = await this.reservas.buscarPorId(reserva_id);
-        if(!existe){
-            return false;
+    actualizar = async (reserva_id, reservaData) => {
+
+        const reservaAntigua = await this.reservas.buscarPorId(reserva_id);
+        if(!reservaAntigua){
+            return false; 
         }
 
         const {
             fecha_reserva,
             salon_id,
-            usuario_id,
             turno_id,
-            foto_cumpleaniero,
-            tematica,
             servicios
-        } = reserva;
+        } = reservaData;
 
         const [[salon]] = await conexion.execute(
             "SELECT importe FROM salones WHERE salon_id = ?",
@@ -101,28 +99,28 @@ export default class ReservasServicio {
         const importe_salon = parseFloat(salon.importe) || 0;
 
         let importe_servicios = 0;
-        for (const s of servicios) {
-            importe_servicios += parseFloat(s.importe) || 0;
+        if (servicios && servicios.length > 0) { 
+            for (const s of servicios) {
+                importe_servicios += parseFloat(s.importe) || 0;
+            }
         }
-
         const importe_total = importe_salon + importe_servicios;
 
         const datosActualizados = {
-            fecha_reserva,
-            salon_id,
-            usuario_id,
-            turno_id,
-            foto_cumpleaniero,
-            tematica,
-            importe_salon,
-            importe_total,
-            servicios
+            ...reservaAntigua,      
+            fecha_reserva: fecha_reserva, 
+            salon_id: salon_id,
+            turno_id: turno_id,
+            importe_salon: importe_salon, 
+            importe_total: importe_total,
+            servicios: servicios      
         };
 
-        await this.reservas.actualizar(reserva_id, datosActualizados);
+        const resultado = await this.reservas.actualizar(reserva_id, datosActualizados);
 
-        return true;
+        return (resultado !== null);
     }
+
 
     eliminar = async (reserva_id) => {
         const reservaExiste = await this.reservas.buscarPorId(reserva_id);
