@@ -135,10 +135,7 @@ export default class Reservas {
             tematica,
             importe_salon,
             importe_total,
-            servicios
         } = reserva;
-
-        await conexion.beginTransaction();
 
         try {
             const sqlReserva = `
@@ -154,7 +151,7 @@ export default class Reservas {
                 WHERE reserva_id = ?
             `;
                 
-            await conexion.execute(sqlReserva, [
+            const [result] = await conexion.execute(sqlReserva, [
                 fecha_reserva, 
                 salon_id, 
                 usuario_id, 
@@ -166,27 +163,16 @@ export default class Reservas {
                 reserva_id
             ]);
 
-            const sqlDeleteServicios = 'DELETE FROM reservas_servicios WHERE reserva_id = ?';
-            await conexion.execute(sqlDeleteServicios, [reserva_id]);
-
-            if (servicios && servicios.length > 0) {
-                const sqlInsertServicios = 'INSERT INTO reservas_servicios (reserva_id, servicio_id, importe) VALUES (?, ?, ?)';
-                for (const servicio of servicios) {
-                    await conexion.execute(sqlInsertServicios, [reserva_id, servicio.servicio_id, servicio.importe]);
-                }
+            if (result.affectedRows === 0) {
+                return null;
             }
-
-            await conexion.commit();
-            
-            return this.buscarPorId(reserva_id);
+            return true;
 
         } catch (error) {
-            await conexion.rollback();
-            console.error("Error en la transacción de actualizar reserva:", error);
-            return null;
+            console.error(`Error en la actualización de reserva:`, error);
+            throw error;
         }
     }
-
 
     eliminar = async(reserva_id) => {
         const sql = 'UPDATE reservas SET activo = 0 WHERE reserva_id = ?';
