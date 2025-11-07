@@ -388,9 +388,14 @@ async function handleGenerarPDF() {
         const blob = await apiFileRequest('/reservas/informe?formato=pdf');
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url; a.download = 'reporte_reservas.pdf'; a.click();
+        a.href = url; 
+        a.download = 'reporte_reservas.pdf'; 
+        a.click();
         URL.revokeObjectURL(url);
-    } catch {}
+    } catch (error) {
+        console.error("Error al generar PDF:", error.message);
+        alert(`Error al generar el informe: ${error.message}`);
+    }
     showLoading(false);
 }
 
@@ -421,7 +426,20 @@ async function apiRequest(endpoint, method = 'GET', body = null) {
 async function apiFileRequest(endpoint) {
     const config = { method: 'GET', headers: {} };
     if (authToken) config.headers.Authorization = `Bearer ${authToken}`;
-    return (await fetch(`${API_BASE}${endpoint}`, config)).blob();
+    
+    const response = await fetch(`${API_BASE}${endpoint}`, config);
+
+    if (response.status === 401 || response.status === 403) {
+        console.warn("Token inválido / Sesión expirada → cerrando sesión automáticamente...");
+        handleLogout(); 
+        throw new Error("Sesión expirada. Vuelve a iniciar sesión.");
+    }
+
+    if (!response.ok) {
+        throw new Error("Error del servidor al generar el archivo.");
+    }
+
+    return response.blob();
 }
 
 function showLoading(s) { document.getElementById('loadingOverlay').classList.toggle('active', s); }
