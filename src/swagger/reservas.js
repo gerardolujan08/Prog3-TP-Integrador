@@ -6,11 +6,16 @@
  *       type: object
  *       required:
  *         - servicio_id
+ *         - importe
  *       properties:
  *         servicio_id:
  *           type: integer
  *           description: ID del servicio a contratar.
  *           example: 1
+ *         importe:
+ *           type: integer
+ *           description: Importe del servicio.
+ *           example: 1000
  *     ReservaInput:
  *       type: object
  *       required:
@@ -256,7 +261,7 @@
  *       '401':
  *         description: Error de autenticación.
  *       '403':
- *         description: Error de autorización.
+ *         description: Error de autorización (Requiere ser admin o empleado).
  
 
  * @swagger
