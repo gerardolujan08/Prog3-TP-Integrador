@@ -124,6 +124,7 @@ export default class Reservas {
         return this.buscarPorId(result.insertId);
     }
 
+
     actualizar = async(reserva_id, reserva) => {
         const { 
             fecha_reserva, 
@@ -142,22 +143,37 @@ export default class Reservas {
         try {
             const sqlReserva = `
                 UPDATE reservas SET 
-                fecha_reserva = ?, salon_id = ?, usuario_id = ?, turno_id = ?, 
-                importe_total = ?, importe_salon = ?, foto_cumpleaniero = ?, tematica = ?
-                WHERE reserva_id = ?`;
+                    fecha_reserva = ?, 
+                    salon_id = ?, 
+                    usuario_id = ?, 
+                    turno_id = ?, 
+                    importe_salon = ?, 
+                    importe_total = ?, 
+                    foto_cumpleaniero = ?, 
+                    tematica = ?
+                WHERE reserva_id = ?
+            `;
                 
             await conexion.execute(sqlReserva, [
-                fecha_reserva, salon_id, usuario_id, turno_id, 
-                importe_total, importe_salon, foto_cumpleaniero, tematica,
+                fecha_reserva, 
+                salon_id, 
+                usuario_id, 
+                turno_id,
+                importe_salon,  
+                importe_total,  
+                foto_cumpleaniero, 
+                tematica,
                 reserva_id
             ]);
 
             const sqlDeleteServicios = 'DELETE FROM reservas_servicios WHERE reserva_id = ?';
             await conexion.execute(sqlDeleteServicios, [reserva_id]);
 
-            const sqlInsertServicios = 'INSERT INTO reservas_servicios (reserva_id, servicio_id, importe) VALUES (?, ?, ?)';
-            for (const servicio of servicios) {
-                await conexion.execute(sqlInsertServicios, [reserva_id, servicio.servicio_id, servicio.importe]);
+            if (servicios && servicios.length > 0) {
+                const sqlInsertServicios = 'INSERT INTO reservas_servicios (reserva_id, servicio_id, importe) VALUES (?, ?, ?)';
+                for (const servicio of servicios) {
+                    await conexion.execute(sqlInsertServicios, [reserva_id, servicio.servicio_id, servicio.importe]);
+                }
             }
 
             await conexion.commit();
@@ -167,9 +183,10 @@ export default class Reservas {
         } catch (error) {
             await conexion.rollback();
             console.error("Error en la transacción de actualizar reserva:", error);
-            throw error;
+            return null;
         }
     }
+
 
     eliminar = async(reserva_id) => {
         const sql = 'UPDATE reservas SET activo = 0 WHERE reserva_id = ?';
@@ -188,11 +205,33 @@ export default class Reservas {
         return reserva;
     }
 
-    buscarDatosReporteCsv = async() => {
-        const sql = 'CALL sp_datos_informe_reservas()';
+    buscarDatosReporte = async() => {
+        const sql = `
+            SELECT
+                r.reserva_id,
+                DATE_FORMAT(r.fecha_reserva, '%d/%m/%Y') AS fecha_reserva,
+                s.titulo AS salon_titulo,
+                CONCAT(DATE_FORMAT(t.hora_desde, '%H:%i'), ' - ', DATE_FORMAT(t.hora_hasta, '%H:%i')) AS turno_completo,
+                u.nombre_usuario AS cliente_email,
+                r.importe_total,
+                GROUP_CONCAT(serv.descripcion SEPARATOR '; ') AS servicios_lista
+            FROM
+                reservas r
+            JOIN salones s ON r.salon_id = s.salon_id
+            JOIN turnos t ON r.turno_id = t.turno_id
+            JOIN usuarios u ON r.usuario_id = u.usuario_id
+            LEFT JOIN reservas_servicios rs ON r.reserva_id = rs.reserva_id
+            LEFT JOIN servicios serv ON rs.servicio_id = serv.servicio_id
+            WHERE
+                r.activo = 1
+            GROUP BY
+                r.reserva_id, s.titulo, t.hora_desde, t.hora_hasta, u.nombre_usuario, r.importe_total
+            ORDER BY
+                r.reserva_id ASC
+        `;
         const [resultado] = await conexion.execute(sql);
         
-        return resultado[0];
+        return resultado;
     }
 
     actualizarFotoCumpleaniero = async (reserva_id, rutaFoto) => {

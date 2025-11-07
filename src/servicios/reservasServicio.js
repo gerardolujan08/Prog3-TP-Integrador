@@ -2,6 +2,7 @@ import Reservas from "../db/reservas.js";
 import ReservasServicios from "../db/reservas_servicios.js";
 import InformeServicio from "./informesServicio.js";
 import NotificacionesServicio from "./notificacionesServicio.js"; 
+import { conexion } from "../db/conexion.js";
 
 export default class ReservasServicio {
 
@@ -9,12 +10,15 @@ export default class ReservasServicio {
         this.reservas = new Reservas();
         this.reservas_servicios = new ReservasServicios();
         this.informes = new InformeServicio();
+        this.notificaciones_servicios = new NotificacionesServicio(); 
     }
 
     buscarTodos = (usuario) => {
-        if(usuario.tipo_usuario < 3){
+        if(usuario.tipo_usuario === 1 || usuario.tipo_usuario === 2){
             return this.reservas.buscarTodos();
-        } else return this.reservas.buscarPropias(usuario.usuario_id);
+        } else {
+            return this.reservas.buscarPropias(usuario.usuario_id);
+        }
     }
 
     buscarPorId = (reserva_id) => {
@@ -30,9 +34,21 @@ export default class ReservasServicio {
             turno_id,
             foto_cumpleaniero, 
             tematica,
-            importe_salon,
-            importe_total,
-            servicios } = reserva;
+            servicios
+        } = reserva;
+
+        const [[salon]] = await conexion.execute(
+            "SELECT importe FROM salones WHERE salon_id = ?",
+            [salon_id]
+        );
+        const importe_salon = parseFloat(salon.importe) || 0;
+
+        let importe_servicios = 0;
+        for (const s of servicios) {
+            importe_servicios += parseFloat(s.importe) || 0;
+        }
+
+        const importe_total = importe_salon + importe_servicios;
 
         const nuevaReserva = {
             fecha_reserva,
@@ -41,37 +57,70 @@ export default class ReservasServicio {
             turno_id,
             foto_cumpleaniero: foto_cumpleaniero || null, 
             tematica: tematica || null,
-            importe_salon: importe_salon || 0,
-            importe_total: importe_total || 0 
-        }   
+            importe_salon,
+            importe_total
+        };
 
         const result = await this.reservas.crear(nuevaReserva);
 
-        if (!result) {
-            return null;
-        }
+        if (!result) return null;
 
-        await this.reservas_servicios.crear(result.reserva_id, servicios);     
-        
+        await this.reservas_servicios.crear(result.reserva_id, servicios);
+
         try {
             const datosParaNotificacion = await this.reservas.datosParaNotificacion(result.reserva_id);
-        
             await this.notificaciones_servicios.enviarCorreo(datosParaNotificacion);
-        } catch (notificationError) {           
+        } catch (notificationError) {
             console.log('Advertencia: No se pudo enviar el correo.');
         }
 
         return this.reservas.buscarPorId(result.reserva_id);
     }
 
-    actualizar = async (reserva_id, reserva) => {
-        const reservaExiste = await this.reservas.buscarPorId(reserva_id);
-        if(!reservaExiste){
-            return false;
+
+    actualizar = async (reserva_id, reservaData) => {
+
+        const reservaAntigua = await this.reservas.buscarPorId(reserva_id);
+        if(!reservaAntigua){
+            return false; 
         }
-        await this.reservas.actualizar(reserva_id, reserva)
-        return true;
+
+        const {
+            fecha_reserva,
+            salon_id,
+            turno_id,
+            servicios
+        } = reservaData;
+
+        const [[salon]] = await conexion.execute(
+            "SELECT importe FROM salones WHERE salon_id = ?",
+            [salon_id]
+        );
+        const importe_salon = parseFloat(salon.importe) || 0;
+
+        let importe_servicios = 0;
+        if (servicios && servicios.length > 0) { 
+            for (const s of servicios) {
+                importe_servicios += parseFloat(s.importe) || 0;
+            }
+        }
+        const importe_total = importe_salon + importe_servicios;
+
+        const datosActualizados = {
+            ...reservaAntigua,      
+            fecha_reserva: fecha_reserva, 
+            salon_id: salon_id,
+            turno_id: turno_id,
+            importe_salon: importe_salon, 
+            importe_total: importe_total,
+            servicios: servicios      
+        };
+
+        const resultado = await this.reservas.actualizar(reserva_id, datosActualizados);
+
+        return (resultado !== null);
     }
+
 
     eliminar = async (reserva_id) => {
         const reservaExiste = await this.reservas.buscarPorId(reserva_id);
@@ -84,7 +133,7 @@ export default class ReservasServicio {
 
     generarInforme = async (formato) => {
         if (formato === 'pdf') {
-            const datosReporte = await this.reservas.buscarDatosReporteCsv();
+            const datosReporte = await this.reservas.buscarDatosReporte();
             const buffer = await this.informes.informeReservasPdf(datosReporte);
             return {
                 buffer,
@@ -94,7 +143,7 @@ export default class ReservasServicio {
                 }
             };
         } else if (formato === 'csv') {
-            const datosReporte = await this.reservas.buscarDatosReporteCsv();
+            const datosReporte = await this.reservas.buscarDatosReporte();
             const path = await this.informes.informeReservasCsv(datosReporte);
             return {
                 path,

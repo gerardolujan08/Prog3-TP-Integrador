@@ -12,7 +12,7 @@
             color: #333;
         }
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
             background-color: white;
             padding: 30px;
@@ -52,20 +52,20 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
-            font-size: 14px;
+            font-size: 12px;
         }
         th {
             background: linear-gradient(135deg, #007bff, #0056b3);
             color: white;
-            padding: 15px 12px;
+            padding: 12px 10px;
             text-align: left;
             font-weight: 600;
-            font-size: 13px;
+            font-size: 11px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
         td {
-            padding: 12px;
+            padding: 10px;
             border-bottom: 1px solid #e9ecef;
             vertical-align: middle;
         }
@@ -76,19 +76,14 @@
             background-color: #e3f2fd;
             transition: background-color 0.2s ease;
         }
-        .fecha-col {
-            font-weight: 500;
-            color: #495057;
+        .servicios-col {
+            font-size: 11px;
+            color: #555;
+            word-break: break-word;
         }
         .titulo-col {
             font-weight: 600;
             color: #007bff;
-        }
-        .orden-col {
-            text-align: center;
-            font-weight: 500;
-            background-color: #f1f3f4;
-            border-radius: 4px;
         }
         .footer {
             margin-top: 40px;
@@ -121,17 +116,23 @@
         <table>
             <thead>
                 <tr>
-                    <th>📅 Fecha de Reserva</th>
-                    <th>📝 Título</th>
-                    <th>🔢 N° Orden</th>
+                    <th>📅 Fecha Reserva</th>
+                    <th>👤 Cliente (Email)</th>
+                    <th>🏠 Salón</th>
+                    <th>🕒 Turno</th>
+                    <th>💲 Importe</th>
+                    <th>📋 Servicios Incluidos</th>
                 </tr>
             </thead>
             <tbody>
                 {{#each reservas}}
                 <tr>
-                    <td class="fecha-col">{{this.fecha_reserva}}</td>
-                    <td class="titulo-col">{{this.titulo}}</td>
-                    <td class="orden-col">{{this.orden}}</td>
+                    <td>{{this.fecha_reserva}}</td>
+                    <td>{{this.cliente_email}}</td>
+                    <td class="titulo-col">{{this.salon_titulo}}</td>
+                    <td>{{this.turno_completo}}</td>
+                    <td>${{this.importe_total}}</td>
+                    <td class="servicios-col">{{this.servicios_lista}}</td>
                 </tr>
                 {{/each}}
             </tbody>

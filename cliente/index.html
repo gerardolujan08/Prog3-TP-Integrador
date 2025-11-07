@@ -13,23 +13,23 @@
             <div class="login-card">
                 <h1><i class="fas fa-birthday-cake"></i> Salones de Fiestas</h1>
                 <h2>Iniciar Sesión</h2>
-                
+
                 <form id="loginForm">
                     <div class="input-group">
                         <i class="fas fa-envelope"></i>
                         <input type="email" id="emailLogin" placeholder="Correo electrónico" required>
                     </div>
-                    
+
                     <div class="input-group">
                         <i class="fas fa-lock"></i>
                         <input type="password" id="passwordLogin" placeholder="Contraseña" required>
                     </div>
-                    
+
                     <button type="submit" class="btn-primary">
                         <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
                     </button>
                 </form>
-                
+
                 <div id="loginError" class="error-message"></div>
             </div>
         </div>
@@ -63,7 +63,7 @@
         <div id="dashboard" class="tab-content active">
             <div class="dashboard-container">
                 <h2><i class="fas fa-chart-bar"></i> Dashboard</h2>
-                
+
                 <div class="stats-grid">
                     <div class="stat-card">
                         <i class="fas fa-calendar-alt stat-icon"></i>
@@ -72,20 +72,20 @@
                             <p>Total Reservas</p>
                         </div>
                     </div>
-                    
+
                     <div class="stat-card">
-                        <i class="fas fa-clock stat-icon"></i>
+                        <i class="fas fa-users stat-icon"></i>
                         <div class="stat-info">
-                            <h3 id="proximasReservas">0</h3>
-                            <p>Próximas</p>
+                            <h3 id="totalClientes">0</h3>
+                            <p>Total Clientes</p>
                         </div>
                     </div>
-                    
+
                     <div class="stat-card">
-                        <i class="fas fa-home stat-icon"></i>
+                        <i class="fas fa-dollar-sign stat-icon"></i>
                         <div class="stat-info">
-                            <h3 id="salonesDisponibles">0</h3>
-                            <p>Salones</p>
+                            <h3 id="ingresosTotales">0</h3>
+                            <p>Ingresos Totales</p>
                         </div>
                     </div>
                 </div>
@@ -106,14 +106,19 @@
             <div class="reservas-container">
                 <div class="section-header">
                     <h2><i class="fas fa-calendar-check"></i> Mis Reservas</h2>
-                    <button id="refreshReservas" class="btn-refresh">
-                        <i class="fas fa-sync-alt"></i> Actualizar
-                    </button>
-                </div>
-                
-                <div id="reservasList" class="reservas-list">
-                </div>
-                
+                    
+                    <div class="button-group">
+                        <button id="refreshReservas" class="btn-refresh">
+                            <i class="fas fa-sync-alt"></i> Actualizar
+                        </button>
+                        <button id="btnGenerarPDF" class="btn-refresh" style="background-color: #28a745; border-color: #28a745; display: none;">
+                            <i class="fas fa-file-pdf"></i> Generar PDF
+                        </button>
+                    </div>
+                    </div>
+
+                <div id="reservasList" class="reservas-list"></div>
+
                 <div id="noReservas" class="no-data">
                     <i class="fas fa-calendar-times"></i>
                     <p>No tienes reservas aún</p>
@@ -124,14 +129,14 @@
         <div id="nueva-reserva" class="tab-content">
             <div class="nueva-reserva-container">
                 <h2><i class="fas fa-plus-circle"></i> Nueva Reserva</h2>
-                
+
                 <form id="reservaForm" class="reserva-form">
                     <div class="form-row">
                         <div class="form-group">
                             <label><i class="fas fa-calendar"></i> Fecha de Reserva *</label>
                             <input type="date" id="fechaReserva" required>
                         </div>
-                        
+
                         <div class="form-group">
                             <label><i class="fas fa-map-marker-alt"></i> Salón *</label>
                             <select id="salonSelect" required>
@@ -139,7 +144,7 @@
                             </select>
                         </div>
                     </div>
-                    
+
                     <div class="form-row">
                         <div class="form-group">
                             <label><i class="fas fa-clock"></i> Turno *</label>
@@ -147,20 +152,19 @@
                                 <option value="">Seleccionar turno...</option>
                             </select>
                         </div>
-                        
+
                         <div class="form-group">
                             <label><i class="fas fa-concierge-bell"></i> Servicios Adicionales</label>
-                            <div id="serviciosList" class="servicios-list">
-                            </div>
+                            <div id="serviciosList" class="servicios-list"></div>
                             <small style="color: #666; font-size: 0.9em;">Al menos un servicio es requerido</small>
                         </div>
                     </div>
-                    
+
                     <button type="submit" class="btn-primary btn-large">
                         <i class="fas fa-save"></i> Crear Reserva
                     </button>
                 </form>
-                
+
                 <div id="reservaSuccess" class="success-message"></div>
                 <div id="reservaError" class="error-message"></div>
             </div>
@@ -170,6 +174,51 @@
     <div id="loadingOverlay" class="loading-overlay">
         <div class="spinner"></div>
         <p>Cargando...</p>
+    </div>
+
+    <div id="editModalOverlay" class="modal-overlay">
+        <div class="modal-card">
+            <h2><i class="fas fa-edit"></i> Editar Reserva</h2>
+            
+            <form id="editReservaForm" class="reserva-form">
+                <input type="hidden" id="editReservaId">
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label><i class="fas fa-calendar"></i> Fecha de Reserva *</label>
+                        <input type="date" id="editFechaReserva" required>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-map-marker-alt"></i> Salón *</label>
+                        <select id="editSalonSelect" required>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label><i class="fas fa-clock"></i> Turno *</label>
+                        <select id="editTurnoSelect" required>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-concierge-bell"></i> Servicios Adicionales</label>
+                        <div id="editServiciosList" class="servicios-list">
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary btn-large">
+                    <i class="fas fa-save"></i> Guardar Cambios
+                </button>
+                <button type="button" id="closeEditModal" class="btn-secondary">
+                    Cancelar
+                </button>
+            </form>
+
+            <div id="editReservaSuccess" class="success-message"></div>
+            <div id="editReservaError" class="error-message"></div>
+        </div>
     </div>
 
     <script src="app.js"></script>
