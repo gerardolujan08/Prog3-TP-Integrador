@@ -6,11 +6,16 @@
  *       type: object
  *       required:
  *         - servicio_id
+ *         - importe
  *       properties:
  *         servicio_id:
  *           type: integer
  *           description: ID del servicio a contratar.
  *           example: 1
+ *         importe:
+ *           type: integer
+ *           description: Importe del servicio.
+ *           example: 1000
  *     ReservaInput:
  *       type: object
  *       required:
