@@ -14,6 +14,7 @@ const cache5Min = cache('5 minutes');
 router.get('/estado', (req, res) => salonesControlador.estado(req, res));
 router.get('/', autorizarUsuarios([1, 2, 3]), cache5Min, (req, res) => salonesControlador.buscarTodos(req, res));
 router.get('/:salon_id', autorizarUsuarios([1, 2]), cache5Min, (req, res) => salonesControlador.buscarPorId(req, res));
+
 router.post(
   '/',
   autorizarUsuarios([1, 2]),
@@ -44,9 +45,28 @@ router.post(
     check('importe', 'El importe es necesario.').notEmpty().isNumeric(),
     validarCampos,
   ],
-  (req, res) => salonesControlador.crear(req, res)
+  async (req, res) => {
+    await salonesControlador.crear(req, res);
+    apicache.clear();
+  }
 );
-router.put('/:salon_id', autorizarUsuarios([1, 2]), (req, res) => salonesControlador.actualizar(req, res));
-router.delete('/:salon_id', autorizarUsuarios([1, 2]), (req, res) => salonesControlador.eliminar(req, res));
 
+router.put(
+  '/:salon_id', 
+  autorizarUsuarios([1, 2]), 
+  async (req, res) => {
+    await salonesControlador.actualizar(req, res);
+    apicache.clear();
+  }
+);
+
+router.delete(
+  '/:salon_id', 
+  autorizarUsuarios([1, 2]), 
+  async (req, res) => {
+    await salonesControlador.eliminar(req, res);
+    apicache.clear();
+  }
+);
+  
 export { router };

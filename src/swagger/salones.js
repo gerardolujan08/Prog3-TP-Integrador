@@ -80,7 +80,7 @@
  *           format: decimal
  *           example: 50000.00
  *   responses:
- *     NotFoundError:
+ *     SalonNotFoundError:
  *       type: object
  *       properties:
  *         estado:
@@ -140,6 +140,36 @@
  *     description: Obtiene los detalles de un salón específico por su ID. **Requiere rol Empleado o Admin.** La respuesta de esta ruta se almacena en caché por 5 minutos.
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: salon_id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID del salón a buscar.
+ *     responses:
+ *       '200':
+ *         description: Datos del salón obtenidos exitosamente.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 estado:
+ *                   type: boolean
+ *                   example: true
+ *                 salon:
+ *                   $ref: '#/components/schemas/Salon'
+ *       '401':
+ *         description: Error de autenticación.
+ *       '403':
+ *         description: Error de autorización.
+ *       '404':
+ *         description: Salón no encontrado.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/responses/SalonNotFoundError'
 
  * @swagger
  * /api/v1/salones:
@@ -149,6 +179,34 @@
  *     description: Añade un nuevo salón a la base de datos. **Requiere rol Empleado o Admin.**
  *     security:
  *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/SalonInput'
+ *     responses:
+ *       '201':
+ *         description: Salón creado exitosamente.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 estado:
+ *                   type: boolean
+ *                   example: true
+ *                 mensaje:
+ *                   type: string
+ *                   example: "Salón creado exitosamente."
+ *                 salon:
+ *                   $ref: '#/components/schemas/Salon'
+ *       '400':
+ *         description: Error de validación (campos faltantes o inválidos).
+ *       '401':
+ *         description: Error de autenticación.
+ *       '403':
+ *         description: Error de autorización.
 
  * @swagger
  * /api/v1/salones/{salon_id}:
@@ -158,6 +216,30 @@
  *     description: Actualiza los datos de un salón específico por su ID. **Requiere rol Empleado o Admin.**
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: salon_id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID del salón a actualizar.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/SalonInput'
+ *     responses:
+ *       '200':
+ *         description: Salón actualizado exitosamente.
+ *       '400':
+ *         description: Error de validación.
+ *       '401':
+ *         description: Error de autenticación.
+ *       '403':
+ *         description: Error de autorización (solo Admin).
+ *       '404':
+ *         description: Reserva no encontrada.
 
  * @swagger
  * /api/v1/salones/{salon_id}:
@@ -167,4 +249,20 @@
  *     description: Marca un salón como inactivo (activo=0) en la base de datos. **Requiere rol Empleado o Admin.**
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: salon_id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID del salón a eliminar.
+ *     responses:
+ *       '200':
+ *         description: Salón eliminado exitosamente.
+ *       '401':
+ *         description: Error de autenticación.
+ *       '403':
+ *         description: Error de autorización (solo Admin).
+ *       '404':
+ *         description: Reserva no encontrada.
  */
