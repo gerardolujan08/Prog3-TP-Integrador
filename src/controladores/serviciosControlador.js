@@ -73,7 +73,7 @@ export default class ServiciosControlador{
             const servicio_id = req.params.servicio_id;
             const actualizado = await this.serviciosServicio.actualizar(servicio_id, req.body);            
             if(!actualizado){
-                return res.status(4404).json({
+                return res.status(404).json({
                     estado: false,
                     mensaje: 'Servicio no encontrado.'
                 });
@@ -81,7 +81,7 @@ export default class ServiciosControlador{
             res.status(200).json({
                 estado: true,
                 mensaje: 'Servicio actualizado exitosamente.',
-                servicio: servicioActualizado
+                servicio: actualizado
             });
 
         } catch (err) {

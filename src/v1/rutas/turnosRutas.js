@@ -40,7 +40,10 @@ router.post(
     ),
     validarCampos,
   ],
-  (req, res) => turnosControlador.crear(req, res)
+  async (req, res) => { 
+    await turnosControlador.crear(req, res)
+    apicache.clear()
+  }
 );
 
 router.put(
@@ -62,11 +65,16 @@ router.put(
     ),
     validarCampos,
   ],
-  (req, res) => turnosControlador.actualizar(req, res)
+  async (req, res) => {
+    await turnosControlador.actualizar(req, res)
+    apicache.clear()
+  }
 );
 
-router.delete('/:turno_id', autorizarUsuarios([1, 2]), (req, res) =>
+router.delete('/:turno_id', autorizarUsuarios([1, 2]), async (req, res) => {
   turnosControlador.eliminar(req, res)
+  apicache.clear()
+}
 );
 
 export { router };

@@ -87,6 +87,36 @@
  *     description: Obtiene los detalles de un servicio específico por su ID. **Requiere rol Empleado o Admin.** La respuesta de esta ruta se almacena en caché por 5 minutos.
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: servicio_id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID del servicio a buscar.
+ *     responses:
+ *       '200':
+ *         description: Datos del servicio obtenidos exitosamente.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 estado:
+ *                   type: boolean
+ *                   example: true
+ *                 servicio:
+ *                   $ref: '#/components/schemas/Servicio'
+ *       '401':
+ *         description: Error de autenticación.
+ *       '403':
+ *         description: Error de autorización.
+ *       '404':
+ *         description: Servicio no encontrado.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/responses/ServicioNotFoundError'
 
  * @swagger
  * /api/v1/servicios:
@@ -96,6 +126,34 @@
  *     description: Añade un nuevo servicio a la base de datos. **Requiere rol Empleado o Admin.** (Esta ruta no se cachea y limpia el caché de servicios).
  *     security:
  *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ServicioInput'
+ *     responses:
+ *       '201':
+ *         description: Servicio creado exitosamente.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 estado:
+ *                   type: boolean
+ *                   example: true
+ *                 mensaje:
+ *                   type: string
+ *                   example: "Servicio creado exitosamente."
+ *                 servicio:
+ *                   $ref: '#/components/schemas/Servicio'
+ *       '400':
+ *         description: Error de validación (campos faltantes o inválidos).
+ *       '401':
+ *         description: Error de autenticación.
+ *       '403':
+ *         description: Error de autorización (Requiere ser admin o empleado).
 
  * @swagger
  * /api/v1/servicios/{servicio_id}:
@@ -105,6 +163,30 @@
  *     description: Actualiza los datos de un servicio por su ID. **Requiere rol Empleado o Admin.** (Esta ruta no se cachea y limpia el caché de servicios).
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: servicio_id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID del servicio a actualizar.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ServicioInput'
+ *     responses:
+ *       '200':
+ *         description: Servicio actualizado exitosamente.
+ *       '400':
+ *         description: Error de validación.
+ *       '401':
+ *         description: Error de autenticación.
+ *       '403':
+ *         description: Error de autorización (Se requiere ser admin o empleado).
+ *       '404':
+ *         description: Servicio no encontrado.
 
  * @swagger
  * /api/v1/servicios/{servicio_id}:
@@ -114,4 +196,20 @@
  *     description: Marca un servicio como inactivo (activo=0) en la base de datos. **Requiere rol Empleado o Admin.**
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: servicio_id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID del servicio a eliminar.
+ *     responses:
+ *       '200':
+ *         description: Servicio eliminado exitosamente.
+ *       '401':
+ *         description: Error de autenticación.
+ *       '403':
+ *         description: Error de autorización (Se requiere ser admin o empleado).
+ *       '404':
+ *         description: Servicio no encontrado.
  */

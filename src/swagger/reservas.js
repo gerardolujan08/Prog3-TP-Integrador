@@ -261,7 +261,7 @@
  *       '401':
  *         description: Error de autenticación.
  *       '403':
- *         description: Error de autorización.
+ *         description: Error de autorización (Requiere ser admin o empleado).
  
 
  * @swagger
