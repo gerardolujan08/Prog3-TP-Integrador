@@ -202,32 +202,45 @@ export default class Reservas {
     }
 
     buscarDatosReporte = async() => {
-        const sql = `
-            SELECT
-                r.reserva_id,
-                DATE_FORMAT(r.fecha_reserva, '%d/%m/%Y') AS fecha_reserva,
-                s.titulo AS salon_titulo,
-                CONCAT(DATE_FORMAT(t.hora_desde, '%H:%i'), ' - ', DATE_FORMAT(t.hora_hasta, '%H:%i')) AS turno_completo,
-                u.nombre_usuario AS cliente_email,
-                r.importe_total,
-                GROUP_CONCAT(serv.descripcion SEPARATOR '; ') AS servicios_lista
-            FROM
-                reservas r
-            JOIN salones s ON r.salon_id = s.salon_id
-            JOIN turnos t ON r.turno_id = t.turno_id
-            JOIN usuarios u ON r.usuario_id = u.usuario_id
-            LEFT JOIN reservas_servicios rs ON r.reserva_id = rs.reserva_id
-            LEFT JOIN servicios serv ON rs.servicio_id = serv.servicio_id
-            WHERE
-                r.activo = 1
-            GROUP BY
-                r.reserva_id, s.titulo, t.hora_desde, t.hora_hasta, u.nombre_usuario, r.importe_total
-            ORDER BY
-                r.reserva_id ASC
-        `;
-        const [resultado] = await conexion.execute(sql);
-        
-        return resultado;
+        try {
+            // Usar stored procedure para el informe (más eficiente)
+            const sql = `CALL sp_informe_estadisticas()`;
+            const [resultado] = await conexion.execute(sql);
+            
+            // Los SP devuelven arrays anidados, extraer el primer resultado
+            return resultado[0] || [];
+            
+        } catch (error) {
+            console.error('Error en stored procedure sp_informe_estadisticas:', error);
+            
+            // Fallback: consulta directa si el SP falla
+            console.log('Usando consulta directa como fallback...');
+            const sqlFallback = `
+                SELECT
+                    r.reserva_id,
+                    DATE_FORMAT(r.fecha_reserva, '%d/%m/%Y') AS fecha_reserva,
+                    s.titulo AS salon_titulo,
+                    CONCAT(DATE_FORMAT(t.hora_desde, '%H:%i'), ' - ', DATE_FORMAT(t.hora_hasta, '%H:%i')) AS turno_completo,
+                    u.nombre_usuario AS cliente_email,
+                    r.importe_total,
+                    GROUP_CONCAT(serv.descripcion SEPARATOR '; ') AS servicios_lista
+                FROM
+                    reservas r
+                JOIN salones s ON r.salon_id = s.salon_id
+                JOIN turnos t ON r.turno_id = t.turno_id
+                JOIN usuarios u ON r.usuario_id = u.usuario_id
+                LEFT JOIN reservas_servicios rs ON r.reserva_id = rs.reserva_id
+                LEFT JOIN servicios serv ON rs.servicio_id = serv.servicio_id
+                WHERE
+                    r.activo = 1
+                GROUP BY
+                    r.reserva_id, s.titulo, t.hora_desde, t.hora_hasta, u.nombre_usuario, r.importe_total
+                ORDER BY
+                    r.reserva_id ASC
+            `;
+            const [resultadoFallback] = await conexion.execute(sqlFallback);
+            return resultadoFallback;
+        }
     }
 
     actualizarFotoCumpleaniero = async (reserva_id, rutaFoto) => {
