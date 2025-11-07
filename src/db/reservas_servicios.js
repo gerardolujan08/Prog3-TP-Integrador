@@ -24,8 +24,6 @@ export default class ReservasServicios {
 
     actualizar = async(reserva_id, servicios) => {
         try {
-            await conexion.beginTransaction();
-
             await conexion.execute(`DELETE FROM reservas_servicios WHERE reserva_id = ?`, [reserva_id]);
 
             for (const servicio of servicios) {
@@ -35,12 +33,10 @@ export default class ReservasServicios {
                 );
             }
 
-            await conexion.commit();
             return true;
         } catch (error) {
-            await conexion.rollback();
             console.log(`Error en reservas_servicios.actualizar():`, error);
-            return false;
+            throw error;
         }
     }
 }
