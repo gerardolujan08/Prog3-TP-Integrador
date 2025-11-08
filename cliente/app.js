@@ -4,6 +4,7 @@ let authToken = null;
 let salonesData = [];
 let serviciosData = [];
 let turnosData = [];
+let reservasData = [];
 
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
@@ -23,6 +24,7 @@ function initializeApp() {
     }
 }
 
+
 function setupEventListeners() {
     document.getElementById('loginForm').addEventListener('submit', handleLogin);
     document.getElementById('logoutBtn').addEventListener('click', handleLogout);
@@ -35,6 +37,9 @@ function setupEventListeners() {
     document.getElementById('reservaForm').addEventListener('submit', handleCreateReserva);
     document.getElementById('btnGenerarPDF').addEventListener('click', handleGenerarPDF);
     document.getElementById('reservasList').addEventListener('click', handleReservaActions);
+
+    document.getElementById('fechaReserva').addEventListener('change', filterAvailableTurnos);
+    document.getElementById('salonSelect').addEventListener('change', filterAvailableTurnos);
 
     document.getElementById('editReservaForm').addEventListener('submit', handleEditReserva);
     document.getElementById('closeEditModal').addEventListener('click', () => {
@@ -104,21 +109,34 @@ function showLoginScreen() {
     document.getElementById('mainScreen').classList.remove('active');
 }
 
+
+
 function showMainScreen() {
     document.getElementById('loginScreen').classList.remove('active');
     document.getElementById('mainScreen').classList.add('active');
     document.getElementById('userName').textContent = currentUser.usuario;
 
     const tipo = parseInt(currentUser.tipo_usuario);
+    
+    const showDashboard = (tipo === 1);
+    const showNuevaReserva = (tipo === 1 || tipo === 3); 
+    const showPDF = (tipo === 1); 
 
-    document.querySelector('[data-tab="dashboard"]').style.display = (tipo === 1 || tipo === 3) ? 'block' : 'none';
+    document.querySelector('[data-tab="dashboard"]').style.display = showDashboard ? 'block' : 'none';
     document.querySelector('[data-tab="reservas"]').style.display = 'block';
-    document.querySelector('[data-tab="nueva-reserva"]').style.display = (tipo === 1 || tipo === 3) ? 'block' : 'none';
-    document.getElementById('btnGenerarPDF').style.display = (tipo === 1) ? 'inline-block' : 'none';
+    document.querySelector('[data-tab="nueva-reserva"]').style.display = showNuevaReserva ? 'block' : 'none';
+    document.getElementById('btnGenerarPDF').style.display = showPDF ? 'inline-block' : 'none';
 
     loadDashboardData();
     loadAllFormData();
-    switchTab(tipo === 3 ? 'dashboard' : 'reservas');
+    
+    let initialTab;
+    if (tipo === 1) {
+        initialTab = 'dashboard'; 
+    } else {
+        initialTab = 'reservas';
+    }
+    switchTab(initialTab);
 }
 
 function switchTab(tabName) {
@@ -129,20 +147,46 @@ function switchTab(tabName) {
     document.getElementById(tabName).classList.add('active');
 
     if (tabName === 'reservas') loadReservas();
-    if (tabName === 'nueva-reserva') loadFormData();
+    
+    if (tabName === 'nueva-reserva') {
+        loadFormData();
+        loadReservas(); 
+    }
 }
 
+
 async function loadDashboardData() {
-    if (currentUser.tipo_usuario !== 1) return;
+    const tipo = parseInt(currentUser.tipo_usuario);
+    if (tipo !== 1) return; 
 
     try {
         const r = await apiRequest('/estadisticas');
-        if (r.estado) {
-            document.getElementById('totalReservas').textContent = r.estadisticas.total_reservas;
-            document.getElementById('totalClientes').textContent = r.estadisticas.total_clientes;
-            document.getElementById('ingresosTotales').textContent = `$${r.estadisticas.ingresos_totales}`;
+        
+        if (r.estado && r.estadisticas) {
+            const stats = r.estadisticas;
+
+            document.getElementById('totalReservas').textContent = stats.total_reservas || 0;
+            document.getElementById('totalClientes').textContent = stats.total_clientes || 0;
+            
+            const ingresos = stats.ingresos_totales || 0;
+            document.getElementById('ingresosTotales').textContent = `$${parseFloat(ingresos).toLocaleString('es-ES', { minimumFractionDigits: 2 })}`;
+
+        } else {
+            console.error("API Error: No se pudo cargar el dashboard. Mensaje:", r.mensaje);
+            document.getElementById('totalReservas').textContent = 0;
+            document.getElementById('totalClientes').textContent = 0;
+            document.getElementById('ingresosTotales').textContent = '$0.00';
+            
+            showError('reservaError', r.mensaje || 'Error al cargar las estadísticas del dashboard.');
+            setTimeout(() => showError('reservaError', ''), 5000);
         }
-    } catch {}
+
+    } catch (error) {
+         console.error("Error al cargar datos del Dashboard (Catch):", error);
+         document.getElementById('totalReservas').textContent = 0;
+         document.getElementById('totalClientes').textContent = 0;
+         document.getElementById('ingresosTotales').textContent = '$0.00';
+    }
 }
 
 async function loadReservas() {
@@ -151,8 +195,22 @@ async function loadReservas() {
     const r = await apiRequest(`/reservas?t=${cacheBust}`);
     showLoading(false);
 
-    if (!r || !r.estado || !r.reservas.length) return showNoReservas();
-    displayReservas(r.reservas);
+    if (!r || !r.estado) {
+        reservasData = [];
+        return showNoReservas();
+    }
+    
+    reservasData = r.reservas || []; 
+    
+    if (!reservasData.length && document.getElementById('reservas').classList.contains('active')) {
+        return showNoReservas();
+    }
+    
+    displayReservas(reservasData);
+    
+    if (document.getElementById('nueva-reserva').classList.contains('active')) {
+        filterAvailableTurnos(); 
+    }
 }
 
 function displayReservas(reservas) {
@@ -248,6 +306,49 @@ function loadFormData() {
     populateServicesList(serviciosData, 'serviciosList');
 }
 
+
+function filterAvailableTurnos() {
+    const fecha = document.getElementById('fechaReserva').value;
+    const salonSelect = document.getElementById('salonSelect');
+    const salonId = parseInt(salonSelect.value);
+    const turnoSelect = document.getElementById('turnoSelect');
+    
+    if (!fecha || isNaN(salonId) || !salonSelect.value) {
+        populateSelect('turnoSelect', turnosData, 'turno_id', 'descripcion');
+        turnoSelect.removeAttribute('disabled');
+        return;
+    }
+
+    const fechaReservaISO = new Date(fecha).toISOString().split('T')[0];
+
+    const turnosOcupadosIds = reservasData
+        .filter(reserva => {
+            const fechaExistenteISO = new Date(reserva.fecha_reserva).toISOString().split('T')[0];
+            return (
+                fechaExistenteISO === fechaReservaISO &&
+                reserva.salon_id === salonId
+            );
+        })
+        .map(reserva => reserva.turno_id);
+
+    const turnosDisponibles = turnosData.filter(turno => {
+        return !turnosOcupadosIds.includes(turno.turno_id);
+    });
+
+    turnoSelect.innerHTML = '';
+    
+    if (turnosDisponibles.length === 0) {
+        turnoSelect.innerHTML = '<option value="">(No hay turnos disponibles)</option>';
+        turnoSelect.setAttribute('disabled', 'true');
+        showError('reservaError', '🛑 No hay turnos disponibles para esta fecha y salón.');
+    } else {
+        populateSelect('turnoSelect', turnosDisponibles, 'turno_id', 'descripcion');
+        turnoSelect.removeAttribute('disabled');
+        showError('reservaError', ''); 
+    }
+}
+
+
 async function handleCreateReserva(e) {
     e.preventDefault();
 
@@ -256,19 +357,59 @@ async function handleCreateReserva(e) {
     submitButton.disabled = true;
     submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creando...';
 
-    if (currentUser.tipo_usuario === 2)
-        return showError('reservaError', 'Los empleados no pueden crear reservas.');
+    if (currentUser.tipo_usuario === 2) {
+        showError('reservaError', 'Los empleados no pueden crear reservas.');
+        submitButton.disabled = false;
+        submitButton.innerHTML = '<i class="fas fa-save"></i> Crear Reserva';
+        return;
+    }
 
     const fecha = document.getElementById('fechaReserva').value;
     const salonId = parseInt(document.getElementById('salonSelect').value);
     const turnoId = parseInt(document.getElementById('turnoSelect').value);
+    
 
+    if (!fecha || isNaN(salonId) || isNaN(turnoId) || !document.getElementById('turnoSelect').value) {
+        showError('reservaError', '❌ Por favor, complete la Fecha, el Salón y seleccione un Turno válido.');
+        submitButton.disabled = false;
+        submitButton.innerHTML = '<i class="fas fa-save"></i> Crear Reserva';
+        setTimeout(() => showError('reservaError', ''), 5000); 
+        return; 
+    }
+
+    const fechaReservaISO = new Date(fecha).toISOString().split('T')[0];
+    const yaExisteReserva = reservasData.some(reserva => {
+        const fechaExistenteISO = new Date(reserva.fecha_reserva).toISOString().split('T')[0];
+        
+        return (
+            fechaExistenteISO === fechaReservaISO &&
+            reserva.salon_id === salonId &&
+            reserva.turno_id === turnoId
+        );
+    });
+
+    if (yaExisteReserva) {
+        showError('reservaError', '❌ ¡Error! Este **Turno** acaba de ser ocupado. Por favor, actualice la página y seleccione otro turno.');
+        submitButton.disabled = false;
+        submitButton.innerHTML = '<i class="fas fa-save"></i> Crear Reserva';
+        setTimeout(() => showError('reservaError', ''), 7000); 
+        return; 
+    }
+    
     const servicios = Array.from(document.querySelectorAll('input[name="serviciosList_servicios"]:checked'))
         .map(chk => ({
             servicio_id: parseInt(chk.value),
             importe: parseFloat(serviciosData.find(s => s.servicio_id == chk.value).importe)
         }));
 
+    if (servicios.length === 0) {
+        showError('reservaError', '⚠️ Debe seleccionar **al menos un servicio adicional** para crear la reserva.');
+        submitButton.disabled = false;
+        submitButton.innerHTML = '<i class="fas fa-save"></i> Crear Reserva';
+        setTimeout(() => showError('reservaError', ''), 4000); 
+        return;
+    }
+    
     const r = await apiRequest('/reservas', 'POST', {
         fecha_reserva: fecha,
         salon_id: salonId,
@@ -281,13 +422,15 @@ async function handleCreateReserva(e) {
         showSuccess('reservaSuccess', 'Reserva creada con éxito.');
         form.reset();
         
+        await loadReservas(); 
+        
         setTimeout(() => {
             switchTab('reservas');
             showSuccess('reservaSuccess', '');
         }, 2000);
     } else {
-        showError('reservaError', r.mensaje);
-        setTimeout(() => showError('reservaError', ''), 3000);
+        showError('reservaError', r.mensaje || 'Error al crear la reserva. El servidor rechazó la solicitud.');
+        setTimeout(() => showError('reservaError', ''), 5000);
     }
 
     submitButton.disabled = false;
@@ -362,6 +505,8 @@ async function handleEditReserva(e) {
     if (r.estado) {
         showSuccess('editReservaSuccess', 'Reserva actualizada.');
         
+        await loadReservas(); 
+
         setTimeout(() => {
             document.getElementById('editModalOverlay').classList.remove('active');
             switchTab('reservas');
@@ -399,6 +544,7 @@ async function handleGenerarPDF() {
     showLoading(false);
 }
 
+
 async function apiRequest(endpoint, method = 'GET', body = null) {
     const config = { 
         method, 
@@ -410,18 +556,32 @@ async function apiRequest(endpoint, method = 'GET', body = null) {
 
     const res = await fetch(`${API_BASE}${endpoint}`, config);
 
-    if (res.status === 401 || res.status === 403) {
+    if (res.status === 401) {
         console.warn("Token inválido / Sesión expirada → cerrando sesión automáticamente...");
         handleLogout();
         return { estado: false, mensaje: "Sesión expirada. Vuelve a iniciar sesión." };
+    }
+    
+    if (res.status === 403) {
+        console.warn(`Acceso Denegado (403) a ${endpoint}.`);
+        return { estado: false, mensaje: "Acceso denegado. No tienes permisos para esta acción." };
+    }
+    
+    if (!res.ok) {
+         try {
+            return await res.json();
+         } catch {
+             return { estado: false, mensaje: "Error del servidor al procesar la solicitud." };
+         }
     }
 
     try {
         return await res.json();
     } catch {
-        return { estado: false, mensaje: "Error al procesar la respuesta del servidor." };
+        return { estado: true, mensaje: "Operación exitosa (sin contenido de respuesta)." };
     }
 }
+
 
 async function apiFileRequest(endpoint) {
     const config = { method: 'GET', headers: {} };

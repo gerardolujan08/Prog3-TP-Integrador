@@ -89,7 +89,7 @@ export default class Reservas {
         return reserva;
     }
 
-    crear = async(reserva) => {
+crear = async(reserva) => {
         
         const { 
                 fecha_reserva,
@@ -101,6 +101,22 @@ export default class Reservas {
                 importe_salon,
                 importe_total 
             } = reserva;
+
+        const sqlCheck = `
+            SELECT reserva_id FROM reservas
+            WHERE fecha_reserva = ? AND salon_id = ? AND turno_id = ? AND activo = 1
+        `;
+
+        const [existingReservations] = await conexion.execute(sqlCheck, [
+            fecha_reserva, 
+            salon_id, 
+            turno_id
+        ]);
+
+        if (existingReservations.length > 0) {
+            throw new Error('Ya existe una reserva para el salón, fecha y turno seleccionados.');
+        }
+
 
         const sql = `INSERT INTO reservas 
             (fecha_reserva, salon_id, usuario_id, turno_id, foto_cumpleaniero, tematica, importe_salon, importe_total) 

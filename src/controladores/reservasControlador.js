@@ -43,7 +43,7 @@ export default class ReservasControlador{
         }
     }
 
-    crear = async (req, res) => {
+crear = async (req, res) => {
         try {
             const {
                 fecha_reserva,
@@ -79,6 +79,13 @@ export default class ReservasControlador{
             });
     
         } catch (err) {
+            if (err.message.includes('Ya existe una reserva')) {
+                return res.status(409).json({ 
+                    estado: false, 
+                    mensaje: err.message 
+                });
+            }
+            
             console.log('Error en POST /reservas/', err);
             res.status(500).json({ estado: false, mensaje: 'Error interno del servidor.' });
         }
