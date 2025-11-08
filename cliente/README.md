@@ -31,26 +31,20 @@ Configuración
 Este proyecto necesita conectarse a tu base de datos MySQL.
 
 1. Base de Datos:
-   * Asegurate de importar el archivo .sql (que te pasó el profe o que está en el repo) en tu base de datos. Esto va a crear todas las tablas (reservas, salones, turnos, etc.).
+   * Asegurate de importar el archivo .sql en tu base de datos. Esto va a crear todas las tablas (reservas, salones, turnos, etc.).
 
 2. Archivo de Entorno (.env):
-   * En la carpeta raíz del proyecto (al lado del package.json), creá un archivo nuevo y nombralo .env
+   * En la carpeta raíz del proyecto, creá un archivo nuevo y nombralo .env
    * Copiá y pegá esto adentro, y cambiale los valores por los de tu conexión local:
 
-    # Puerto para el servidor
-    PORT=3000
-    
-    # Datos de la Base de Datos
-    DB_HOST=localhost
-    DB_USER=root
-    DB_PASSWORD=
-    DB_DATABASE=reservas
-    
-    # Secreto para JWT (token)
-    JWT_SECRET=un_secreto_muy_dificil
-
-
-   Ojo: Si tu usuario de MySQL no es 'root' o tiene contraseña, cambialo en DB_USER y DB_PASSWORD.
+PUERTO=3000
+USERCORREO= 
+USERPASS=   
+DB_HOST=localhost
+DB_USER=
+DATABASE=reservas
+DB_PASSWORD=
+SECRET_JWT=mi_clave_secreta
 
 
 ===================
@@ -59,7 +53,7 @@ Ejecución
 
 Una vez que está todo instalado y configurado:
 
-1. Corré el servidor en modo desarrollo (se reinicia solo con cada cambio):
+1. Corré el servidor:
 
 npm run dev
 
