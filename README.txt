@@ -42,5 +42,61 @@ Estructura del proyecto:
   - /swagger - Documentación de la API
 - /cliente - Frontend de la aplicación
 
+Configuracion archivo .env:
+------------------------
+PUERTO=3000 (o el que utiliza por defecto)
+DB_HOST=
+DB_USER=
+DATABASE=
+DB_PASSWORD=
+SECRET_JWT=
+USERCORREO=reservasdesalones@gmail.com 
+USERPASS=bazrgylqbnccnpkk
+
+Los datos del base de datos deben ser los propios al igual que la SECRET_JWT
+Creamos un gmail para el trabajo y esas son las credenciales, si desea puede cambiarlas
+por unas propias
+
+Procdure utilizados:
+------------------------
+El procedure debe ser creado en la base de datos propia:
+
+ - Procedure para la obtención de datos que se envian por mail
+CREATE PROCEDURE obtenerDatosNotificacion(IN p_reserva_id INT)
+BEGIN
+    SELECT 
+        r.fecha_reserva AS fecha,
+        s.titulo AS salon,
+        t.orden AS turno,
+        u_cliente.nombre_usuario AS correo_cliente
+    FROM 
+    	reservas AS r
+    INNER JOIN 
+    	salones AS s ON s.salon_id = r.salon_id
+    INNER JOIN 
+    	turnos AS t ON t.turno_id = r.turno_id
+    INNER JOIN
+    	usuarios AS u_cliente ON u_cliente.usuario_id = r.usuario_id
+    WHERE 
+    	r.activo = 1 AND r.reserva_id = p_reserva_id;
+
+    SELECT
+        u_admin.nombre_usuario AS correoAdmin      
+    FROM
+        usuarios AS u_admin
+    WHERE
+        u_admin.tipo_usuario = 1; -- Asumiendo que 1 es el tipo de Admin
+END
+
+
+ - Procedure para la obtención de datos que se envian en el informe
+CREATE PROCEDURE sp_datos_informe_reservas()
+BEGIN
+    SELECT 
+        (SELECT COUNT(*) FROM reservas WHERE activo = 1) AS total_reservas,
+        (SELECT COUNT(*) FROM usuarios WHERE activo = 1 AND tipo_usuario = 3) AS total_clientes,
+        (SELECT SUM(importe_total) FROM reservas WHERE activo = 1) AS ingresos_totales;
+END
+
 Autor: Prog3-TP-Integrador Team
 Fecha: Noviembre 2025
