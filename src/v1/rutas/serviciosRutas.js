@@ -26,7 +26,10 @@ router.post(
     check('importe', 'El importe debe ser numérico.').isNumeric(),
     validarCampos,
   ],
-  (req, res) => serviciosControlador.crear(req, res)
+  async (req, res) => {
+    await serviciosControlador.crear(req, res)
+    apicache.clear()
+  },
 );
 router.put(
   '/:servicio_id',
@@ -37,10 +40,15 @@ router.put(
     check('importe', 'El importe debe ser numérico.').isNumeric(),
     validarCampos,
   ],
-  (req, res) => serviciosControlador.actualizar(req, res)
+  async (req, res) => {
+    await serviciosControlador.actualizar(req, res)
+    apicache.clear()
+  }
 );
-router.delete('/:servicio_id', autorizarUsuarios([1, 2]), (req, res) =>
-  serviciosControlador.eliminar(req, res)
+router.delete('/:servicio_id', autorizarUsuarios([1, 2]), async (req, res) => {
+  serviciosControlador.eliminar(req, res),
+  apicache.clear()
+}
 );
 
 export { router };

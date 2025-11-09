@@ -4,7 +4,7 @@ export default function autorizarUsuarios ( perfilAutorizados = [] ) {
         if(!usuario || !perfilAutorizados.includes(usuario.tipo_usuario)) {
             return res.status(403).json({
                 estado:"Falla",
-                mesaje:"Acceso denegado."
+                mensaje:"Acceso denegado."
             })
         }
         next();

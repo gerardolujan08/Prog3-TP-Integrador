@@ -98,6 +98,36 @@
  *     description: Obtiene los detalles de un turno específico por su ID. **Requiere rol Empleado o Admin.** La respuesta de esta ruta se almacena en caché por 5 minutos.
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: turno_id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID del turno a buscar.
+ *     responses:
+ *       '200':
+ *         description: Datos del turno obtenidos exitosamente.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 estado:
+ *                   type: boolean
+ *                   example: true
+ *                 turno:
+ *                   $ref: '#/components/schemas/Turno'
+ *       '401':
+ *         description: Error de autenticación.
+ *       '403':
+ *         description: Error de autorización.
+ *       '404':
+ *         description: Servicio no encontrado.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/responses/TurnoNotFoundError'
 
  * @swagger
  * /api/v1/turnos:
@@ -107,6 +137,34 @@
  *     description: Añade un nuevo turno a la base de datos. **Requiere rol Empleado o Admin.**
  *     security:
  *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/TurnoInput'
+ *     responses:
+ *       '201':
+ *         description: Turno creado exitosamente.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 estado:
+ *                   type: boolean
+ *                   example: true
+ *                 mensaje:
+ *                   type: string
+ *                   example: "Turno creado exitosamente."
+ *                 servicio:
+ *                   $ref: '#/components/schemas/Turno'
+ *       '400':
+ *         description: Error de validación (campos faltantes o inválidos).
+ *       '401':
+ *         description: Error de autenticación.
+ *       '403':
+ *         description: Error de autorización (Requiere ser admin o empleado).
 
  * @swagger
  * /api/v1/turnos/{turno_id}:
@@ -116,6 +174,30 @@
  *     description: Actualiza los datos de un turno por su ID. **Requiere rol Empleado o Admin.**
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: turno_id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID del turno a actualizar.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/TurnoInput'
+ *     responses:
+ *       '200':
+ *         description: Turno actualizado exitosamente.
+ *       '400':
+ *         description: Error de validación.
+ *       '401':
+ *         description: Error de autenticación.
+ *       '403':
+ *         description: Error de autorización (Se requiere ser admin o empleado).
+ *       '404':
+ *         description: Servicio no encontrado.
 
  * @swagger
  * /api/v1/turnos/{turno_id}:
@@ -125,4 +207,20 @@
  *     description: Marca un turno como inactivo (activo=0) en la base de datos. **Requiere rol Empleado o Admin.**
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: turno_id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID del turno a eliminar.
+ *     responses:
+ *       '200':
+ *         description: Turno eliminado exitosamente.
+ *       '401':
+ *         description: Error de autenticación.
+ *       '403':
+ *         description: Error de autorización (Se requiere ser admin o empleado).
+ *       '404':
+ *         description: Turno no encontrado.
  */
