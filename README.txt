@@ -57,7 +57,7 @@ Los datos del base de datos deben ser los propios al igual que la SECRET_JWT
 Creamos un gmail para el trabajo y esas son las credenciales, si desea puede cambiarlas
 por unas propias
 
-Procdure utilizados:
+Procedure utilizados:
 ------------------------
 El procedure debe ser creado en la base de datos propia:
 
