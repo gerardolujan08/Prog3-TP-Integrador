@@ -89,8 +89,8 @@ BEGIN
 END
 
 
- - Procedure para la obtención de datos que se envian en el informe
-CREATE PROCEDURE sp_datos_informe_reservas()
+ - Procedure para la obtención de datos que se envian para las estadísticas del dashboard
+CREATE PROCEDURE sp_informe_estadisticas()
 BEGIN
     SELECT 
         (SELECT COUNT(*) FROM reservas WHERE activo = 1) AS total_reservas,
